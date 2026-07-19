@@ -1,0 +1,33 @@
+package com.example.productcatalog.data
+
+import com.example.productcatalog.model.Product
+
+object ProductRepository {
+    fun getProducts(): List<Product> = listOf(
+        Product(listOf("Apple"), "$", "USD", "iPhone 12", 1, 9, false, 799, "iPhone12-device-info.png", "iPhone 12"),
+        Product(listOf("Apple"), "$", "USD", "iPhone 12 Mini", 2, 9, false, 699, "iPhone12-device-info.png", "iPhone 12 Mini"),
+        Product(listOf("Apple"), "$", "USD", "iPhone 12 Pro Max", 3, 9, false, 1099, "iPhone12-device-info.png", "iPhone 12 Pro Max"),
+        Product(listOf("Apple"), "$", "USD", "iPhone 12 Pro", 4, 5, false, 999, "iPhone12Pro-device-info.png", "iPhone 12 Pro"),
+        Product(listOf("Apple"), "$", "USD", "iPhone 11", 5, 8, false, 599, "iPhone11-device-info.png", "iPhone 11"),
+        Product(listOf("Apple"), "$", "USD", "iPhone 11 Pro", 6, 3, false, 699, "infocardiphone11Pro.png", "iPhone 11 Pro"),
+        Product(listOf("Apple"), "$", "USD", "iPhone XS", 7, 4, false, 549, "infocard.png", "iPhone XS"),
+        Product(listOf("Apple"), "$", "USD", "iPhone XR", 8, 5, false, 499, "infoiphoneXR.png", "iPhone XR"),
+        Product(listOf("Apple"), "$", "USD", "iPhone XS Max", 9, 7, false, 649, "infocard.png", "iPhone XS Max"),
+        Product(listOf("Samsung"), "$", "USD", "Galaxy S20", 10, 9, false, 999, "samsung-S20-device-info.png", "Galaxy S20"),
+        Product(listOf("Samsung"), "$", "USD", "Galaxy S20+", 11, 9, false, 1199, "samsung-S20+-device-info.png", "Galaxy S20+"),
+        Product(listOf("Samsung"), "$", "USD", "Galaxy S20 Ultra", 12, 12, false, 1399, "samsung-S20Ultra-device-info.png", "Galaxy S20 Ultra"),
+        Product(listOf("Samsung"), "$", "USD", "Galaxy S10", 13, 5, false, 899, "samsung-S10-device-info.png", "Galaxy S10"),
+        Product(listOf("Samsung"), "$", "USD", "Galaxy S9", 14, 5, false, 699, "samsung-s9-device-info.png", "Galaxy S9"),
+        Product(listOf("Samsung"), "$", "USD", "Galaxy Note 20", 15, 7, false, 999, "Note20-device-info.png", "Galaxy Note 20"),
+        Product(listOf("Samsung"), "$", "USD", "Galaxy Note 20 Ultra", 16, 7, false, 1299, "Note20Ultra-device-info.png", "Galaxy Note 20 Ultra"),
+        Product(listOf("Google"), "$", "USD", "Pixel 4", 17, 5, false, 899, "GooglePixel4-device-info.png", "Pixel 4"),
+        Product(listOf("Google"), "$", "USD", "Pixel 3", 18, 5, false, 599, "GooglePixel3-device-info.png", "Pixel 3"),
+        Product(listOf("Google"), "$", "USD", "Pixel 2", 19, 3, false, 399, "device-info.jpg", "Pixel 2"),
+        Product(listOf("OnePlus"), "$", "USD", "One Plus 8", 20, 6, false, 799, "OnePlus8-device-info.png", "One Plus 8"),
+        Product(listOf("OnePlus"), "$", "USD", "One Plus 8T", 21, 6, false, 899, "OnePlus8-device-info.png", "One Plus 8T"),
+        Product(listOf("OnePlus"), "$", "USD", "One Plus 8 Pro", 22, 6, false, 899, "OnePlus8-device-info.png", "One Plus 8 Pro"),
+        Product(listOf("OnePlus"), "$", "USD", "One Plus 7T", 23, 6, false, 599, "OnePlus7T-DeviceInfo.png", "One Plus 7T"),
+        Product(listOf("OnePlus"), "$", "USD", "One Plus 7", 24, 3, false, 499, "oneplus7device-info.png", "One Plus 7"),
+        Product(listOf("OnePlus"), "$", "USD", "One Plus 6T", 25, 3, false, 429, "Oneplus6T_infocard.png", "One Plus 6T")
+    )
+}
