@@ -44,6 +44,7 @@ fun CartBottomSheet(
     cartItems: List<Product>, // Replace 'Product' with your data class
     totalAmount: Double,
     onRemoveItem: (Product) -> Unit,
+    onCheckoutClick: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
@@ -113,7 +114,10 @@ fun CartBottomSheet(
                     }
                 }
 
-                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant
+                )
 
                 // Bottom: Total Amount
                 Row(
@@ -135,7 +139,10 @@ fun CartBottomSheet(
                 }
 
                 Button(
-                    onClick = { /* Handle Checkout */ },
+                    onClick = {
+                        onDismiss()
+                        onCheckoutClick()
+                              },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp)
@@ -158,7 +165,7 @@ fun CartItemRow(product: Product,
     ) {
         // Assume you have an image and name in your Product class
         Image(
-            painter = painterResource(id = R.drawable.ic_iphone_img),
+            painter = painterResource(id = R.drawable.ic_iphone_images),
             contentDescription = "Product Image",
             modifier = Modifier
                 .size(60.dp)

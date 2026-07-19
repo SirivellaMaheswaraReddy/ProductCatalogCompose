@@ -1,6 +1,5 @@
 package com.example.productcatalog.ui
 
-import androidx.compose.foundation.layout.size
 import androidx.lifecycle.ViewModel
 import com.example.productcatalog.data.ProductRepository
 import com.example.productcatalog.model.Product
@@ -16,16 +15,19 @@ class ProductsViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(
         ProductsUiState(
-            products = allProducts.filterByVendor(Vendor.APPLE)
+            products = allProducts,
+            selectedVendor = null
         )
     )
     val uiState: StateFlow<ProductsUiState> = _uiState.asStateFlow()
 
     fun selectVendor(vendor: Vendor) {
-        _uiState.update {
-            it.copy(
-                selectedVendor = vendor,
-                products = allProducts.filterByVendor(vendor)
+        _uiState.update { currentState ->
+            val newVendor = if (currentState.selectedVendor == vendor) null else vendor
+
+            currentState.copy(
+                selectedVendor = newVendor,
+                products = if (newVendor == null) allProducts else allProducts.filterByVendor(newVendor)
             )
         }
     }
@@ -39,6 +41,7 @@ class ProductsViewModel : ViewModel() {
             )
         }
     }
+
     fun removeFromCart(product: Product) {
         _uiState.update { currentState ->
             val updatedCart = currentState.cartProducts.filterNot { it.id == product.id }
@@ -57,6 +60,10 @@ class ProductsViewModel : ViewModel() {
         }
     }
 
+    // This is a private extension function inside the class
     private fun List<Product>.filterByVendor(vendor: Vendor): List<Product> =
-        filter { vendor.label in it.availableSizes }
+        this.filter {
+            it.availableSizes.get(0).contains(vendor.label, true)
+//            it.availableSizes.contains(vendor.label)
+        }
 }

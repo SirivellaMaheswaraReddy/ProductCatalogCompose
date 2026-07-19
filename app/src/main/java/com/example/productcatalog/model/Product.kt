@@ -27,7 +27,7 @@ enum class Vendor(val label: String) {
 data class ProductsUiState(
     val products: List<Product> = emptyList(),
     val cartProducts: List<Product> = emptyList(), // Store the actual items here
-    val selectedVendor: Vendor = Vendor.APPLE,
+    val selectedVendor: Vendor? = null,
     val cartCount: Int = 0,
     val favoriteProductIds: Set<Int> = emptySet()
 )

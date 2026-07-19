@@ -1,7 +1,7 @@
 package com.example.productcatalog.ui
 
+import android.app.Activity
 import android.content.res.Configuration
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,9 +36,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,12 +51,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.productcatalog.R
@@ -64,26 +71,7 @@ import com.example.productcatalog.ui.popup.CartBottomSheet
 import com.example.productcatalog.ui.theme.ProductCatalogTheme
 
 @Composable
-fun ProductsScreen(
-    isLoggedIn: Boolean,
-    onSignInClick: () -> Unit,
-    viewModel: ProductsViewModel = viewModel()
-) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    ProductsContent(
-        uiState = uiState,
-        onRemoveFromCart = { product -> viewModel.removeFromCart(product) }, // New lambda
-        isLoggedIn = isLoggedIn,
-        onSignInClick = onSignInClick,
-        onVendorSelected = viewModel::selectVendor,
-        onAddToCart = { product -> viewModel.addToCart(product) },
-        onFavoriteClick = viewModel::toggleFavorite
-    )
-}
-
-@Composable
-private fun ProductsContent(
+fun ProductsContent(
     uiState: ProductsUiState,
     onRemoveFromCart: (Product) -> Unit,
     isLoggedIn: Boolean,
@@ -91,89 +79,86 @@ private fun ProductsContent(
     onVendorSelected: (Vendor) -> Unit,
     onAddToCart: (Product) -> Unit,
     onFavoriteClick: (Int) -> Unit,
+    onCheckoutClick: () -> Unit
 ) {
-    val view = androidx.compose.ui.platform.LocalView.current
-    if (!view.isInEditMode) {
-        androidx.compose.runtime.SideEffect {
-            val window = (view.context as android.app.Activity).window
-            val controller = androidx.core.view.WindowCompat.getInsetsController(window, view)
-            controller.hide(androidx.core.view.WindowInsetsCompat.Type.statusBars())
-            controller.systemBarsBehavior = androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        }
-    }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.surface // Supports Dark/Light automatically
     ) {
         val configuration = LocalConfiguration.current
-
-        // Determine column count based on orientation
         val columns = when (configuration.orientation) {
-            Configuration.ORIENTATION_LANDSCAPE -> 3 // 3 columns for landscape
-            else -> 2 // 2 columns for portrait
+            Configuration.ORIENTATION_LANDSCAPE -> 3
+            else -> 2
         }
+
         val totalAmount = uiState.cartProducts.sumOf {
             it.price.toString().toDoubleOrNull() ?: 0.0
         }
-        ProductTopBar(cartCount = uiState.cartCount,
-            cartItems = uiState.cartProducts,
-            totalAmount =   totalAmount,
-            isLoggedIn = isLoggedIn,
-            onSignInClick = onSignInClick,
-            onRemoveItem = onRemoveFromCart
-        )
 
+        Column {
+            ProductTopBar(
+                cartCount = uiState.cartCount,
+                cartItems = uiState.cartProducts,
+                totalAmount = totalAmount,
+                isLoggedIn = isLoggedIn,
+                onSignInClick = onSignInClick,
+                onRemoveItem = onRemoveFromCart,
+                onCheckoutClick = onCheckoutClick
+            )
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(columns),
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(
-                horizontal = 16.dp, // Reduced horizontal padding for better portrait fit
-                vertical = 12.dp
-            ),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                VendorSection(
-                    selectedVendor = uiState.selectedVendor,
-                    onVendorSelected = onVendorSelected
-                )
-            }
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                Text(
-                    text = "${uiState.products.size} Product(s) found.",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 5.dp),
-                    textAlign = TextAlign.Center,
-                    fontSize = 15.sp,
-                    color = Color.DarkGray
-                )
-            }
-            items(
-                items = uiState.products,
-                key = { it.id }
-            ) { product ->
-                ProductItem(
-                    product = product,
-                    isFavorite = product.id in uiState.favoriteProductIds,
-                    onAddToCart = { onAddToCart(product) } ,
-                    onFavoriteClick = { onFavoriteClick(product.id) }
-                )
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(columns),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    VendorSection(
+                        selectedVendor = uiState.selectedVendor,
+                        onVendorSelected = onVendorSelected
+                    )
+                }
+
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Text(
+                        text = "${uiState.products.size} Product(s) found.",
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
+                        textAlign = TextAlign.Center,
+                        fontSize = 15.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                items(
+                    items = uiState.products,
+                    key = { it.id }
+                ) { product ->
+                    ProductItem(
+                        product = product,
+                        isFavorite = product.id in uiState.favoriteProductIds,
+                        isLoggedIn = isLoggedIn,
+                        onSignInClick = onSignInClick,
+                        onAddToCart = { onAddToCart(product) },
+                        onFavoriteClick = { onFavoriteClick(product.id) }
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun ProductTopBar(cartCount: Int,
-                          cartItems: List<Product>, // Added parameter
-                          totalAmount: Double,
-                          isLoggedIn: Boolean,
-                          onSignInClick: () -> Unit,
-                          onRemoveItem: (Product) -> Unit) {
+private fun ProductTopBar(
+    cartCount: Int,
+    favoriteCount: Int = 0,
+    cartItems: List<Product>,
+    totalAmount: Double,
+    isLoggedIn: Boolean,
+    onSignInClick: () -> Unit,
+    onRemoveItem: (Product) -> Unit,
+    onCheckoutClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -183,10 +168,8 @@ private fun ProductTopBar(cartCount: Int,
     ) {
         Image(
             painter = painterResource(id = R.drawable.ic_browser_stack_logo),
-            contentDescription = "BrowserStack Logo",
-            modifier = Modifier
-                .height(40.dp)
-                .wrapContentSize(),
+            contentDescription = "Logo",
+            modifier = Modifier.height(40.dp).wrapContentSize(),
             contentScale = ContentScale.Fit
         )
 
@@ -195,63 +178,84 @@ private fun ProductTopBar(cartCount: Int,
         LazyRow(
             modifier = Modifier.weight(1f),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(20.dp),
-            contentPadding = PaddingValues(horizontal = 8.dp)
+            horizontalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            item { Text("Offers", fontSize = 20.sp, fontWeight = FontWeight.Bold) }
-            item { Text("Orders", fontSize = 20.sp, fontWeight = FontWeight.Bold) }
-            item { Text("Favourites", fontSize = 20.sp, fontWeight = FontWeight.Bold) }
-            Log.e("M333", "isLoggedIn pro: $isLoggedIn")
+            item { Text("Offers", fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface) }
+            item { Text("Orders", fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface) }
             if (!isLoggedIn) {
                 item {
                     Text(
                         text = "Sign In",
-                        modifier = Modifier.clickable { onSignInClick() }, // Now this works!
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Medium
+                        modifier = Modifier.clickable { onSignInClick() },
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.width(10.dp))
-
-        var showCartSheet by remember { mutableStateOf(false) }
-
-        Box(
-            modifier = Modifier
-                .padding(16.dp)
-                .clickable { showCartSheet = true } // Click listener added here
-        ) {
+        Box(modifier = Modifier.padding(8.dp).clickable { /* Navigate to Favs if needed */ }) {
             Icon(
-                imageVector = Icons.Default.ShoppingCart,
-                contentDescription = "Cart",
-                modifier = Modifier.size(42.dp)
+                imageVector = Icons.Default.Favorite,
+                contentDescription = "Favorites",
+                modifier = Modifier.size(30.dp),
+                tint = if (favoriteCount > 0) Color.Red else MaterialTheme.colorScheme.onSurface
             )
-
-
-            if (cartCount >= 0) {
+            if (favoriteCount > 0) {
                 Box(
                     modifier = Modifier
-                        .size(22.dp)
+                        .size(16.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFFFD600))
-                        .align(Alignment.BottomEnd),
+                        .background(MaterialTheme.colorScheme.primary)
+                        .align(Alignment.TopEnd),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = cartCount.toString(),
-                        fontSize = 11.sp,
+                        text = favoriteCount.toString(),
+                        fontSize = 9.sp,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
         }
+
+        Spacer(modifier = Modifier.width(8.dp))
+        var showCartSheet by remember { mutableStateOf(false) }
+
+        Box(modifier = Modifier.clickable { showCartSheet = true }.padding(8.dp)) {
+            Icon(
+                imageVector = Icons.Default.ShoppingCart,
+                contentDescription = "Cart",
+                modifier = Modifier.size(32.dp),
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+            if (cartCount > 0) {
+                Box(
+                    modifier = Modifier
+                        .size(18.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.error)
+                        .align(Alignment.TopEnd),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = cartCount.toString(),
+                        fontSize = 10.sp,
+                        color = MaterialTheme.colorScheme.onError,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
         if (showCartSheet) {
             CartBottomSheet(
-                cartItems = cartItems, // Pass your list of products
+                cartItems = cartItems,
                 totalAmount = totalAmount,
                 onRemoveItem = onRemoveItem,
+                onCheckoutClick = onCheckoutClick,
                 onDismiss = { showCartSheet = false }
             )
         }
@@ -260,45 +264,32 @@ private fun ProductTopBar(cartCount: Int,
 
 @Composable
 private fun VendorSection(
-    selectedVendor: Vendor,
+    selectedVendor: Vendor?,
     onVendorSelected: (Vendor) -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 2.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Vendors:",
-            fontSize = 16.sp,
-            color = Color.DarkGray
-        )
-
-        Spacer(modifier = Modifier.height(14.dp))
-
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text("Vendors", style = MaterialTheme.typography.labelLarge)
+        Spacer(modifier = Modifier.height(8.dp))
         LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(15.dp),
-            contentPadding = PaddingValues(horizontal = 24.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp)
         ) {
             items(Vendor.entries) { vendor ->
+                // FIXED: Defined isSelected here
+                val isSelected = vendor == selectedVendor
                 Surface(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
+                        .clip(RoundedCornerShape(20.dp))
                         .clickable { onVendorSelected(vendor) },
-                    color = if (vendor == selectedVendor) {
-                        Color(0xFFEFB8C8)
-                    } else {
-                        Color(0xFFF0F0F0)
-                    }
+                    // FIXED: Uses theme colors
+                    color = if (isSelected) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.secondaryContainer
                 ) {
                     Text(
                         text = vendor.label,
-                        modifier = Modifier.padding(
-                            horizontal = 15.dp,
-                            vertical = 10.dp
-                        ),
-                        fontSize = 16.sp
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                        else MaterialTheme.colorScheme.onSecondaryContainer
                     )
                 }
             }
@@ -310,115 +301,103 @@ private fun VendorSection(
 private fun ProductItem(
     product: Product,
     isFavorite: Boolean,
+    isLoggedIn: Boolean,
+    onSignInClick: () -> Unit,
     onAddToCart: (Product) -> Unit,
     onFavoriteClick: () -> Unit
 ) {
     val productImage = when {
-        product.title.contains("Pixel", ignoreCase = true) -> R.drawable.ic_google_pixel_image
-        product.title.contains("Galaxy", ignoreCase = true) -> R.drawable.ic_samsung_image
-        product.title.contains("Plus", ignoreCase = true) -> R.drawable.ic_one_plus_image
-        product.title.contains("iphone", ignoreCase = true) -> R.drawable.ic_iphone_img
-        else -> R.drawable.ic_iphone_img // Default fallback image
+        product.title.contains("Pixel", true) -> R.drawable.ic_google_pixel_image
+        product.title.contains("Galaxy", true) -> R.drawable.ic_samsung_image
+        product.title.contains("Plus", true) -> R.drawable.ic_one_plus_image
+        else -> R.drawable.ic_iphone_images
     }
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier
-                .padding(8.dp)
-                .height(240.dp)
-                .wrapContentSize() // This ensures the Box matches the image's visual width
-        ) {
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(modifier = Modifier.height(200.dp)) {
             Image(
                 painter = painterResource(id = productImage),
-                contentDescription = product.title,
-                modifier = Modifier
-                    .height(240.dp) // Maintain consistent height
-                    .aspectRatio(1f), // Keep it square or adjust to your image ratio
+                contentDescription = null,
+                alignment = Alignment.Center,
+                modifier = Modifier.width(180.dp).fillMaxHeight(),
                 contentScale = ContentScale.Fit
             )
-
-            IconButton(
-                onClick = onFavoriteClick,
-                modifier = Modifier
-                    .align(Alignment.TopEnd) // Aligns to the top-end of the Image
-                    .padding(4.dp)
-                    .background(Color.White.copy(alpha = 0.7f), CircleShape) // Optional: background for visibility
-                    .size(32.dp)
-            ) {
-                Icon(
-                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = "Favourite",
-                    tint = if (isFavorite) Color.Red else Color.Gray,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
         }
-
-        Spacer(modifier = Modifier.height(12.dp))
 
         Text(
             text = product.title,
-            fontSize = 18.sp,
-            color = Color.DarkGray,
-            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(product.currencyFormat, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                text = product.price.toString(),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
 
-        Box(
-            modifier = Modifier
-                .width(52.dp)
-                .height(5.dp)
-                .background(Color(0xFFE5C400))
+        // FIXED: Safe price calculation to prevent crashes
+        val installmentPrice = (product.price.toString().toDoubleOrNull() ?: 0.0) / product.installments
+        Text(
+            text = "or ${product.installments} x ${product.currencyFormat}${installmentPrice.formatPrice()}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Row(verticalAlignment = Alignment.Bottom) {
-            Text(product.currencyFormat, fontSize = 20.sp)
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = product.price.toString(),
-                fontSize = 36.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Text(".00", fontSize = 20.sp)
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "or ${product.installments} x ${product.currencyFormat} " +
-                    "${product.price.toDouble().div(product.installments).formatPrice()}",
-            fontSize = 20.sp,
-            color = Color.Gray
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = { onAddToCart(product) },
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(72.dp),
-            shape = RoundedCornerShape(0.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1C1B20)
-            )
+                .padding(top = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp) // Handles spacing between items
         ) {
-            Text(
-                text = "Add to cart",
-                fontSize = 20.sp,
-                color = Color.White
-            )
+            Button(
+                onClick = { if (isLoggedIn) onAddToCart(product) else onSignInClick() },
+                modifier = Modifier
+                    .weight(1f) // Makes the button take up remaining space
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp), // Prevents text clipping
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            ) {
+                Text(
+                    text = "Add to cart",
+                    fontSize = 14.sp,
+                    maxLines = 1
+                )
+            }
+
+            IconButton(
+                onClick = { if (isLoggedIn) onFavoriteClick() else onSignInClick() },
+                modifier = Modifier
+                    .size(48.dp) // Standard size for touch targets
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        shape = CircleShape
+                    )
+            ) {
+                Icon(
+                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                    contentDescription = "Favorite",
+                    modifier = Modifier.size(24.dp),
+                    tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
 
 private fun Double.formatPrice(): String = "%.2f".format(this)
+
 
 /*@Preview(
     name = "Product Catalog",
@@ -426,13 +405,17 @@ private fun Double.formatPrice(): String = "%.2f".format(this)
     widthDp = 1280,
     heightDp = 800
 )*/
-@Preview(showBackground = true, name = "Portrait")
-//@Preview(showBackground = true, device = "spec:width=1280dp,height=800dp,orientation=landscape", name = "Landscape")
-@Composable
-private fun ProductsPreview() {
-    ProductCatalogTheme {
-        ProductsScreen(onSignInClick = {
-
-        }, isLoggedIn = false)
-    }
-}
+//@Preview(showBackground = true, name = "Portrait")
+////@Preview(showBackground = true, device = "spec:width=1280dp,height=800dp,orientation=landscape", name = "Landscape")
+//@Composable
+//private fun ProductsPreview() {
+//    ProductCatalogTheme {
+//        ProductsContent(
+//            onSignInClick = {
+//
+//            }, isLoggedIn = false,
+//            onCheckoutNavigate = TODO(),
+//            viewModel = TODO()
+//        )
+//    }
+//}
