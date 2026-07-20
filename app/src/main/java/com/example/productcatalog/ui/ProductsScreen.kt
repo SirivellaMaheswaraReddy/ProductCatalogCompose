@@ -70,6 +70,7 @@ import com.example.productcatalog.model.Product
 import com.example.productcatalog.model.ProductsUiState
 import com.example.productcatalog.model.Vendor
 import com.example.productcatalog.ui.popup.CartBottomSheet
+import com.example.productcatalog.ui.popup.ProductDetailPopup
 import com.example.productcatalog.ui.theme.ProductCatalogTheme
 
 @Composable
@@ -101,6 +102,8 @@ fun ProductsContent(
         val totalAmount = uiState.cartProducts.sumOf {
             it.price.toString().toDoubleOrNull() ?: 0.0
         }
+
+        var selectedProduct by remember { mutableStateOf<Product?>(null) }
 
         Column {
             ProductTopBar(
@@ -153,10 +156,23 @@ fun ProductsContent(
                         isLoggedIn = isLoggedIn,
                         onSignInClick = onSignInClick,
                         onAddToCart = { onAddToCart(product) },
-                        onFavoriteClick = { onFavoriteClick(product.id) }
+                        onFavoriteClick = { onFavoriteClick(product.id) },
+                        onClick = { selectedProduct = product }
                     )
                 }
             }
+        }
+
+        selectedProduct?.let { product ->
+            ProductDetailPopup(
+                product = product,
+                isFavorite = product.id in uiState.favoriteProductIds,
+                isLoggedIn = isLoggedIn,
+                onSignInClick = onSignInClick,
+                onAddToCart = onAddToCart,
+                onFavoriteClick = { onFavoriteClick(product.id) },
+                onDismiss = { selectedProduct = null }
+            )
         }
     }
 }
@@ -343,7 +359,8 @@ private fun ProductItem(
     isLoggedIn: Boolean,
     onSignInClick: () -> Unit,
     onAddToCart: (Product) -> Unit,
-    onFavoriteClick: () -> Unit
+    onFavoriteClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     val productImage = when {
         product.title.contains("Pixel", true) -> R.drawable.ic_google_pixel_image
@@ -352,7 +369,10 @@ private fun ProductItem(
         else -> R.drawable.ic_iphone_images
     }
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable { onClick() }
+    ) {
         Box(modifier = Modifier.height(200.dp)) {
             Image(
                 painter = painterResource(id = productImage),
