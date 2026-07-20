@@ -16,6 +16,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.productcatalog.data.UserPreferences
 import com.example.productcatalog.ui.CheckoutScreen
+import com.example.productcatalog.ui.FavoritesScreen
+import com.example.productcatalog.ui.OrderSuccessScreen
+import com.example.productcatalog.ui.OrdersScreen
 import com.example.productcatalog.ui.ProductsContent
 import com.example.productcatalog.ui.ProductsViewModel
 import com.example.productcatalog.ui.SignInScreen
@@ -41,12 +44,16 @@ class MainActivity : ComponentActivity() {
                 val loginViewModel: LoginViewModel = viewModel(
                     factory = LoginViewModelFactory(userPreferences)
                 )
+                val productsViewModel: ProductsViewModel = viewModel(
+                    factory = ProductsViewModelFactory(userPreferences)
+                )
 
                 val isLoggedIn by loginViewModel.isLoggedIn.collectAsStateWithLifecycle()
 
                 AppNavigation(
                     isLoggedIn = isLoggedIn,
-                    loginViewModel = loginViewModel
+                    loginViewModel = loginViewModel,
+                    productsViewModel = productsViewModel
                 )
             }
         }
@@ -55,11 +62,11 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun AppNavigation(
         isLoggedIn: Boolean,
-        loginViewModel: LoginViewModel
+        loginViewModel: LoginViewModel,
+        productsViewModel: ProductsViewModel
     ) {
         val navController = rememberNavController()
         // Shared ViewModel for Products and Checkout
-        val productsViewModel: ProductsViewModel = viewModel()
         val productUiState by productsViewModel.uiState.collectAsStateWithLifecycle()
 
         NavHost(
@@ -76,7 +83,34 @@ class MainActivity : ComponentActivity() {
                     onVendorSelected = { vendor -> productsViewModel.selectVendor(vendor) },
                     onAddToCart = { product -> productsViewModel.addToCart(product) },
                     onRemoveFromCart = { product -> productsViewModel.removeFromCart(product) },
-                    onFavoriteClick = { productId -> productsViewModel.toggleFavorite(productId) }
+                    onFavoriteClick = { productId -> productsViewModel.toggleFavorite(productId) },
+                    onFavoritesClick = { navController.navigate("favorites") },
+                    onOrdersClick = { navController.navigate("orders") },
+                    onLogoClick = {
+                        productsViewModel.selectVendor(null)
+                        navController.popBackStack("products", inclusive = false)
+                    }
+                )
+            }
+
+            composable("favorites") {
+                val favoriteProducts = androidx.compose.runtime.remember(productUiState.favoriteProductIds) {
+                    productsViewModel.getFavoriteProducts()
+                }
+                FavoritesScreen(
+                    favoriteProducts = favoriteProducts,
+                    onRemoveFavorite = { productId -> productsViewModel.toggleFavorite(productId) },
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            composable("orders") {
+                val orderedProducts = androidx.compose.runtime.remember(productUiState.orderedProductIds) {
+                    productsViewModel.getOrderedProducts()
+                }
+                OrdersScreen(
+                    orderedProducts = orderedProducts,
+                    onBackClick = { navController.popBackStack() }
                 )
             }
 
@@ -89,7 +123,23 @@ class MainActivity : ComponentActivity() {
                 CheckoutScreen(
                     cartItems = productUiState.cartProducts,
                     totalAmount = totalAmount,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { navController.popBackStack() },
+                    onOrderSubmit = { userName ->
+                        productsViewModel.clearCart()
+                        navController.navigate("order_success/$userName") {
+                            popUpTo("products") { inclusive = false }
+                        }
+                    }
+                )
+            }
+
+            composable("order_success/{userName}") { backStackEntry ->
+                val userName = backStackEntry.arguments?.getString("userName") ?: "Customer"
+                OrderSuccessScreen(
+                    userName = userName,
+                    onContinueShopping = {
+                        navController.popBackStack("products", inclusive = false)
+                    }
                 )
             }
 
@@ -98,9 +148,7 @@ class MainActivity : ComponentActivity() {
                     viewModel = loginViewModel,
                     onNavigateBack = { navController.popBackStack() },
                     onSignInSuccess = {
-                        navController.navigate("products") {
-                            popUpTo("signin") { inclusive = true }
-                        }
+                        navController.popBackStack()
                     }
                 )
             }
@@ -113,6 +161,16 @@ class LoginViewModelFactory(private val userPreferences: UserPreferences) : andr
         if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return LoginViewModel(userPreferences) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
+
+class ProductsViewModelFactory(private val userPreferences: UserPreferences) : androidx.lifecycle.ViewModelProvider.Factory {
+    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(ProductsViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return ProductsViewModel(userPreferences) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

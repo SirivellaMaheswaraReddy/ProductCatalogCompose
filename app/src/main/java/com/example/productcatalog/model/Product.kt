@@ -29,5 +29,6 @@ data class ProductsUiState(
     val cartProducts: List<Product> = emptyList(), // Store the actual items here
     val selectedVendor: Vendor? = null,
     val cartCount: Int = 0,
-    val favoriteProductIds: Set<Int> = emptySet()
+    val favoriteProductIds: Set<Int> = emptySet(),
+    val orderedProductIds: Set<Int> = emptySet()
 )

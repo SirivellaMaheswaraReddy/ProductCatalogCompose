@@ -43,7 +43,8 @@ import androidx.compose.ui.unit.sp
 fun CheckoutScreen(
     cartItems: List<com.example.productcatalog.model.Product>,
     totalAmount: Double,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onOrderSubmit: (String) -> Unit
 ) {
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
@@ -90,8 +91,8 @@ fun CheckoutScreen(
                                 .padding(vertical = 4.dp),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(text = product.title, modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.surface)
-                            Text(text = "$${product.price}", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.surface)
+                            Text(text = product.title, modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.onSecondaryContainer)
+                            Text(text = "$${product.price}", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSecondaryContainer)
                         }
                     }
 
@@ -101,12 +102,12 @@ fun CheckoutScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(text = "Total", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.surfaceBright)
+                        Text(text = "Total", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSecondaryContainer)
                         Text(
                             text = "$${String.format("%.2f", totalAmount)}",
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
-                            color = MaterialTheme.colorScheme.surfaceBright
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                     }
                 }
@@ -155,11 +156,16 @@ fun CheckoutScreen(
             )
 
             Button(
-                onClick = { /* Handle Final Payment/Order */ },
+                onClick = { 
+                    if (firstName.isNotBlank()) {
+                        onOrderSubmit("$firstName $lastName".trim())
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp),
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(8.dp),
+                enabled = firstName.isNotBlank() && address.isNotBlank() && postalCode.isNotBlank()
             ) {
                 Text("Submit Order")
             }

@@ -26,6 +26,7 @@ class LoginViewModel(private val userPreferences: UserPreferences) : ViewModel()
         // Observe DataStore and update UI State automatically
         viewModelScope.launch {
             userPreferences.isLoggedIn.collect { status ->
+                _isLoggedIn.value = status
                 _uiState.update {
                     Log.e("M333", "status : $status")
                     it.copy(isLoggedIn = status)
@@ -56,6 +57,7 @@ class LoginViewModel(private val userPreferences: UserPreferences) : ViewModel()
             try {
                 // Logic to save login status
                 userPreferences.saveLoginStatus(true)
+                _uiState.update { it.copy(isLoading = false) }
                 onSuccess()
             } catch (e: Exception) {
                 _uiState.update { it.copy(errorMessage = "Login Failed", isLoading = false) }

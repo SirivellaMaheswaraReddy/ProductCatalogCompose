@@ -79,6 +79,9 @@ fun ProductsContent(
     onVendorSelected: (Vendor) -> Unit,
     onAddToCart: (Product) -> Unit,
     onFavoriteClick: (Int) -> Unit,
+    onFavoritesClick: () -> Unit,
+    onOrdersClick: () -> Unit,
+    onLogoClick: () -> Unit,
     onCheckoutClick: () -> Unit
 ) {
     Surface(
@@ -98,11 +101,15 @@ fun ProductsContent(
         Column {
             ProductTopBar(
                 cartCount = uiState.cartCount,
+                favoriteCount = uiState.favoriteProductIds.size,
                 cartItems = uiState.cartProducts,
                 totalAmount = totalAmount,
                 isLoggedIn = isLoggedIn,
                 onSignInClick = onSignInClick,
                 onRemoveItem = onRemoveFromCart,
+                onFavoritesClick = onFavoritesClick,
+                onOrdersClick = onOrdersClick,
+                onLogoClick = onLogoClick,
                 onCheckoutClick = onCheckoutClick
             )
 
@@ -157,6 +164,9 @@ private fun ProductTopBar(
     isLoggedIn: Boolean,
     onSignInClick: () -> Unit,
     onRemoveItem: (Product) -> Unit,
+    onFavoritesClick: () -> Unit,
+    onOrdersClick: () -> Unit,
+    onLogoClick: () -> Unit,
     onCheckoutClick: () -> Unit
 ) {
     Row(
@@ -166,12 +176,18 @@ private fun ProductTopBar(
             .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_browser_stack_logo),
-            contentDescription = "Logo",
-            modifier = Modifier.height(40.dp).wrapContentSize(),
-            contentScale = ContentScale.Fit
-        )
+        Box(
+            modifier = Modifier
+                .height(40.dp)
+                .clickable { onLogoClick() }
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_browser_stack_logo),
+                contentDescription = "Logo",
+                modifier = Modifier.fillMaxHeight(),
+                contentScale = ContentScale.Fit
+            )
+        }
 
         Spacer(modifier = Modifier.width(10.dp))
 
@@ -181,7 +197,14 @@ private fun ProductTopBar(
             horizontalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             item { Text("Offers", fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface) }
-            item { Text("Orders", fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface) }
+            item {
+                Text(
+                    text = "Orders",
+                    modifier = Modifier.clickable { onOrdersClick() },
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
             if (!isLoggedIn) {
                 item {
                     Text(
@@ -195,7 +218,7 @@ private fun ProductTopBar(
             }
         }
 
-        Box(modifier = Modifier.padding(8.dp).clickable { /* Navigate to Favs if needed */ }) {
+        Box(modifier = Modifier.padding(8.dp).clickable { onFavoritesClick() }) {
             Icon(
                 imageVector = Icons.Default.Favorite,
                 contentDescription = "Favorites",
