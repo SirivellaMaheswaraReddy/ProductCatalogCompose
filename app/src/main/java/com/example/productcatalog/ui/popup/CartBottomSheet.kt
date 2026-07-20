@@ -52,7 +52,7 @@ fun CartBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         Column(
             modifier = Modifier
@@ -98,7 +98,7 @@ fun CartBottomSheet(
                     Text(
                         text = "Add some products in the bag",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             } else {
@@ -174,7 +174,7 @@ fun CartItemRow(product: Product,
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(text = product.title, fontWeight = FontWeight.Medium)
-            Text(text = "$${product.price}", color = Color.Gray)
+            Text(text = "$${product.price}", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         // REMOVE OPTION (Delete Icon)
         IconButton(onClick = onRemoveClick) {

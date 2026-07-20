@@ -24,6 +24,8 @@ class ProductsViewModel(private val userPreferences: UserPreferences) : ViewMode
     )
     val uiState: StateFlow<ProductsUiState> = _uiState.asStateFlow()
 
+    val darkMode = userPreferences.darkMode
+
     init {
         viewModelScope.launch {
             userPreferences.favoriteProductIds.collect { ids ->
@@ -84,6 +86,12 @@ class ProductsViewModel(private val userPreferences: UserPreferences) : ViewMode
     fun toggleFavorite(productId: Int) {
         viewModelScope.launch {
             userPreferences.toggleFavorite(productId)
+        }
+    }
+
+    fun setDarkMode(enabled: Boolean?) {
+        viewModelScope.launch {
+            userPreferences.setDarkMode(enabled)
         }
     }
 

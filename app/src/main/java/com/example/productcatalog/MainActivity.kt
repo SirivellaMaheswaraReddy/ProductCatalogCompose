@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.core.view.WindowCompat
@@ -40,18 +41,22 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            ProductCatalogTheme {
+            val productsViewModel: ProductsViewModel = viewModel(
+                factory = ProductsViewModelFactory(userPreferences)
+            )
+            val darkModePref by productsViewModel.darkMode.collectAsStateWithLifecycle(initialValue = null)
+            val useDarkTheme = darkModePref ?: isSystemInDarkTheme()
+
+            ProductCatalogTheme(darkTheme = useDarkTheme) {
                 val loginViewModel: LoginViewModel = viewModel(
                     factory = LoginViewModelFactory(userPreferences)
-                )
-                val productsViewModel: ProductsViewModel = viewModel(
-                    factory = ProductsViewModelFactory(userPreferences)
                 )
 
                 val isLoggedIn by loginViewModel.isLoggedIn.collectAsStateWithLifecycle()
 
                 AppNavigation(
                     isLoggedIn = isLoggedIn,
+                    isDarkTheme = useDarkTheme,
                     loginViewModel = loginViewModel,
                     productsViewModel = productsViewModel
                 )
@@ -62,6 +67,7 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun AppNavigation(
         isLoggedIn: Boolean,
+        isDarkTheme: Boolean,
         loginViewModel: LoginViewModel,
         productsViewModel: ProductsViewModel
     ) {
@@ -78,6 +84,10 @@ class MainActivity : ComponentActivity() {
                 ProductsContent(
                     uiState = productUiState,
                     isLoggedIn = isLoggedIn,
+                    isDarkTheme = isDarkTheme,
+                    onThemeToggle = {
+                        productsViewModel.setDarkMode(!isDarkTheme)
+                    },
                     onSignInClick = { navController.navigate("signin") },
                     onCheckoutClick = { navController.navigate("checkout") },
                     onVendorSelected = { vendor -> productsViewModel.selectVendor(vendor) },

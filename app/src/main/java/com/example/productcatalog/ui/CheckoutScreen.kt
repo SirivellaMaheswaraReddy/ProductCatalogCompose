@@ -81,7 +81,9 @@ fun CheckoutScreen(
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF0F0))
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+                )
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     cartItems.forEach { product ->

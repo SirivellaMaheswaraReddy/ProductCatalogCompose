@@ -139,13 +139,13 @@ private fun FavoriteItem(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .size(24.dp)
-                    .background(Color.White.copy(alpha = 0.7f), CircleShape)
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), CircleShape)
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Remove",
                     modifier = Modifier.size(16.dp),
-                    tint = Color.Black
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
         }

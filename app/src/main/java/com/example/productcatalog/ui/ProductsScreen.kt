@@ -29,6 +29,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -75,6 +77,8 @@ fun ProductsContent(
     uiState: ProductsUiState,
     onRemoveFromCart: (Product) -> Unit,
     isLoggedIn: Boolean,
+    isDarkTheme: Boolean,
+    onThemeToggle: () -> Unit,
     onSignInClick: () -> Unit,
     onVendorSelected: (Vendor) -> Unit,
     onAddToCart: (Product) -> Unit,
@@ -105,6 +109,8 @@ fun ProductsContent(
                 cartItems = uiState.cartProducts,
                 totalAmount = totalAmount,
                 isLoggedIn = isLoggedIn,
+                isDarkTheme = isDarkTheme,
+                onThemeToggle = onThemeToggle,
                 onSignInClick = onSignInClick,
                 onRemoveItem = onRemoveFromCart,
                 onFavoritesClick = onFavoritesClick,
@@ -162,6 +168,8 @@ private fun ProductTopBar(
     cartItems: List<Product>,
     totalAmount: Double,
     isLoggedIn: Boolean,
+    isDarkTheme: Boolean,
+    onThemeToggle: () -> Unit,
     onSignInClick: () -> Unit,
     onRemoveItem: (Product) -> Unit,
     onFavoritesClick: () -> Unit,
@@ -216,6 +224,14 @@ private fun ProductTopBar(
                     )
                 }
             }
+        }
+
+        IconButton(onClick = onThemeToggle) {
+            Icon(
+                imageVector = if (isDarkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
+                contentDescription = "Toggle Theme",
+                tint = MaterialTheme.colorScheme.onSurface
+            )
         }
 
         Box(modifier = Modifier.padding(8.dp).clickable { onFavoritesClick() }) {

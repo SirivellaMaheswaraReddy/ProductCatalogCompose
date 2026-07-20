@@ -20,6 +20,7 @@ class UserPreferences(context: Context) {
         val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
         val FAVORITE_PRODUCT_IDS = stringSetPreferencesKey("favorite_product_ids")
         val ORDERED_PRODUCT_IDS = stringSetPreferencesKey("ordered_product_ids")
+        val DARK_MODE = booleanPreferencesKey("dark_mode")
     }
 
     val isLoggedIn: Flow<Boolean> = dataStore.data
@@ -27,6 +28,12 @@ class UserPreferences(context: Context) {
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
         .map { it[IS_LOGGED_IN] ?: false }
+
+    val darkMode: Flow<Boolean?> = dataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { it[DARK_MODE] }
 
     val favoriteProductIds: Flow<Set<Int>> = dataStore.data
         .catch { exception ->
@@ -46,6 +53,16 @@ class UserPreferences(context: Context) {
 
     suspend fun saveLoginStatus(status: Boolean) {
         dataStore.edit { it[IS_LOGGED_IN] = status }
+    }
+
+    suspend fun setDarkMode(enabled: Boolean?) {
+        dataStore.edit { preferences ->
+            if (enabled == null) {
+                preferences.remove(DARK_MODE)
+            } else {
+                preferences[DARK_MODE] = enabled
+            }
+        }
     }
 
     suspend fun toggleFavorite(productId: Int) {
