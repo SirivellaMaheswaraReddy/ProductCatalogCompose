@@ -18,6 +18,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.productcatalog.data.UserPreferences
 import com.example.productcatalog.ui.CheckoutScreen
 import com.example.productcatalog.ui.FavoritesScreen
+import com.example.productcatalog.ui.OffersScreen
 import com.example.productcatalog.ui.OrderSuccessScreen
 import com.example.productcatalog.ui.OrdersScreen
 import com.example.productcatalog.ui.ProductsContent
@@ -96,11 +97,16 @@ class MainActivity : ComponentActivity() {
                     onFavoriteClick = { productId -> productsViewModel.toggleFavorite(productId) },
                     onFavoritesClick = { navController.navigate("favorites") },
                     onOrdersClick = { navController.navigate("orders") },
+                    onOffersClick = { navController.navigate("offers") },
                     onLogoClick = {
                         productsViewModel.selectVendor(null)
                         navController.popBackStack("products", inclusive = false)
                     }
                 )
+            }
+
+            composable("offers") {
+                OffersScreen(onBackClick = { navController.popBackStack() })
             }
 
             composable("favorites") {

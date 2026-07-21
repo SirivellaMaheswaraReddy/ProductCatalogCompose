@@ -1,90 +1,53 @@
-# Product Catalog - Jetpack Compose
-
-A complete Jetpack Compose product catalog screen based on the provided BrowserStack demo UI and the supplied products JSON response.
-
-## Included
-
-- Kotlin + Jetpack Compose
-- Material 3
-- MVVM structure
-- StateFlow + ViewModel
-- Vendor filtering
-- Product grid
-- Add to cart count
-- Favourite toggle
-- Product response mapped into Kotlin models
-- Responsive 2-column Compose grid
-
-## Open the project
-
-Open the `ProductCatalogCompose` folder in Android Studio.
-
-## Product images
-
-The supplied JSON contains SKU file names such as `iPhone12-device-info.png`. Since the actual image files were not included in the request, the project uses `ic_product_placeholder.xml` as a safe local placeholder.
-
-To use the real product images:
-
-1. Copy the product image files into `app/src/main/res/drawable`.
-2. Add a SKU-to-drawable resource mapping in `ProductItem` or a dedicated image mapper.
-3. Replace `R.drawable.ic_product_placeholder` with the mapped drawable resource.
-
-The product data in `ProductRepository.kt` is populated from the exact JSON response provided.
-
-
 # BrowserStack Product Catalog (Jetpack Compose)
 
-A modern, responsive Product Catalog application built with **Jetpack Compose** following the **MVVM** architecture. This project replicates the BrowserStack demo UI, featuring product listing, vendor filtering, and a functional shopping cart system.
+A complete, feature-rich Android application built with **Jetpack Compose** and **Material 3**, following the **MVVM** architecture and **Clean Architecture** principles. This project replicates a professional e-commerce experience with persistent data storage and a responsive UI.
 
 ## 🚀 Features
 
-- **Product Grid**: A responsive grid (2 columns portrait, 3 columns landscape) displaying product details.
-- **Vendor Filtering**: Filter products dynamically by brand (Apple, Samsung, Google, OnePlus).
+- **Product Catalog**: Responsive grid layout (2 columns portrait, 3 columns landscape) with dynamic vendor filtering (Apple, Samsung, Google, OnePlus).
+- **Product Details**: Interactive popup for each product showing full details, description, and quick actions.
+- **Persistent Favorites**: Save your favorite items! Favorites are stored persistently using **Jetpack DataStore**, ensuring they remain even after the app is closed.
+- **Orders History**: A dedicated screen to view all previously placed orders, also saved persistently.
 - **Shopping Cart System**:
-    - Add products to cart from the main grid.
-    - Real-time badge count update on the cart icon.
-    - **Cart Bottom Sheet**: View added items, see total amount, and remove items.
-- **Favorites**: Toggle favorite status on individual products.
-- **Responsive UI**: Built entirely with Material 3 components and adaptive layouts.
+    - Add/Remove items with real-time total amount calculation.
+    - Persistent Cart Badge count in the header.
+    - **Cart Bottom Sheet**: View and manage your bag easily from any screen.
+- **Secure Checkout**: Simple checkout flow with shipping information validation.
+- **Order Success**: A personalized congratulatory screen after every successful purchase.
+- **Authentication**: Fully functional Sign-In screen with input validation and persistent login status.
+- **Dark/Light Mode**: User-controlled theme toggle that persists across sessions.
 
 ## 🛠 Tech Stack
 
 - **Language**: Kotlin
 - **UI Framework**: Jetpack Compose (Material 3)
 - **Architecture**: MVVM (Model-View-ViewModel)
-- **State Management**: StateFlow & Compose State (collectAsStateWithLifecycle)
-- **Navigation**: Integration-ready for Sign-In and Checkout flows.
+- **Navigation**: Compose Navigation with backstack management.
+- **Storage**: Jetpack DataStore (Preferences) for lightweight persistence.
+- **State Management**: StateFlow & Compose State (collectAsStateWithLifecycle).
 
-## 📂 Project Structure
+## 📂 Project Highlights
 
-The project follows a clean MVVM pattern, organizing code by responsibility:
+### Architecture
+- **UI Layer**: Composable functions organized by screen (`ProductsScreen`, `FavoritesScreen`, `OrdersScreen`, `CheckoutScreen`, `SignInScreen`).
+- **ViewModel Layer**: `ProductsViewModel` handles business logic for catalog, cart, and favorites. `LoginViewModel` manages authentication.
+- **Data Layer**: `ProductRepository` provides product data. `UserPreferences` manages persistence via DataStore.
 
-
-### 💡 Key Logic Implementation
-*   **Total Calculation**: Done reactively in the UI layer whenever `uiState.cartItems` changes:
-    ```kotlin
-    val totalAmount = uiState.cartItems.sumOf { it.price.toDoubleOrNull() ?: 0.0 }
-    ```
-*   **Grid Responsiveness**: Automatically switches between 2 columns (Portrait) and 3 columns (Landscape) using `LocalConfiguration`.
-*   **One-Way Data Flow**: Events (Clicking Add/Remove) are sent to the ViewModel, which updates the StateFlow, triggering a UI recomposition.
-
-## 📸 Functionality Overview
-
-### Cart Management
-The app calculates the `totalAmount` dynamically using the logic:
-
-
-Users can open the **Your Bag** popup by clicking the cart icon, view their selected items, and remove them using the delete icon, which triggers a UI refresh via the ViewModel.
-
-### Sign-In State
-The "Sign In" button visibility is controlled by the `isLoggedIn` state. To ensure a fresh state during development (and avoid Android Auto Backup issues), the project is configured to clear data on new installs if specified in the Manifest.
+### Key Implementation Details
+- **Persistence**: Used `stringSetPreferencesKey` in DataStore to store collections of Product IDs for Favorites and Orders.
+- **Navigation**: Implemented robust backstack handling to prevent blank screens and ensure a smooth "Return to Home" experience when clicking the logo.
+- **Theming**: Integrated `isSystemInDarkTheme()` with a user override, allowing the app to respect system settings while giving users manual control.
 
 ## 🛠 Installation & Setup
 
-1. Clone the repository.
-2. Open the project in **Android Studio Hedgehog** or newer.
-3. Ensure you have the `ic_iphone_img`, `ic_samsung_image`, etc., in your `res/drawable` folder (or use the provided placeholders).
-4. Build and run on an emulator or physical device.
+1. Open the project in **Android Studio (Hedgehog or newer)**.
+2. Build the project to sync Gradle dependencies.
+3. Run the app on an emulator or a physical device (API 24+ recommended).
 
-## 📝 License
-This project is developed for demonstration purposes.
+## 📸 Functionality
+- **Sign In**: Use any non-empty email and password to log in.
+- **Favorites**: Click the heart icon on any card or in the detail popup. Access your favorites via the heart icon in the TopBar.
+- **Orders**: Successfully complete a checkout to see your items appearing in the "Orders" section.
+
+---
+Developed as a demonstration of modern Android development practices.

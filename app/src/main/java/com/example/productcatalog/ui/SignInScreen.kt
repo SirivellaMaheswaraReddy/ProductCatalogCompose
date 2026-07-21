@@ -70,8 +70,8 @@ fun SignInScreen(
                 painter = painterResource(id = R.drawable.ic_browser_stack_logo),
                 contentDescription = "Logo",
                 modifier = Modifier
-                    .height(80.dp)
-                    .padding(bottom = 32.dp)
+                    .height(150.dp)
+                    .padding(bottom = 40.dp)
             )
 
             // Email Field

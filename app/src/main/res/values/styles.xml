@@ -6,4 +6,13 @@
         <item name="android:statusBarColor">#FFFFFF</item>
         <item name="android:navigationBarColor">#FFFFFF</item>
     </style>
+
+    <!-- Theme for direct splash loading -->
+    <style name="Theme.AppSplash" parent="Theme.ProductCatalog">
+        <item name="android:windowBackground">#FFFFFF</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+<!--        <item name="android:windowLayoutInStatusBar">true</item>-->
+    </style>
 </resources>

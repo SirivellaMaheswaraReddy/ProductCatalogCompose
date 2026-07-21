@@ -114,7 +114,7 @@ fun ProductDetailPopup(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Button(
-                        onClick = { 
+                        onClick = {
                             if (isLoggedIn) onAddToCart(product) else onSignInClick()
                             onDismiss()
                         },
@@ -127,7 +127,10 @@ fun ProductDetailPopup(
                     }
 
                     IconButton(
-                        onClick = { if (isLoggedIn) onFavoriteClick() else onSignInClick() },
+                        onClick = {
+                            if (isLoggedIn) onFavoriteClick() else onSignInClick()
+                            onDismiss()
+                        },
                         modifier = Modifier
                             .size(48.dp)
                             .background(

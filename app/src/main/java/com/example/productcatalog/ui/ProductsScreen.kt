@@ -86,6 +86,7 @@ fun ProductsContent(
     onFavoriteClick: (Int) -> Unit,
     onFavoritesClick: () -> Unit,
     onOrdersClick: () -> Unit,
+    onOffersClick: () -> Unit,
     onLogoClick: () -> Unit,
     onCheckoutClick: () -> Unit
 ) {
@@ -118,6 +119,7 @@ fun ProductsContent(
                 onRemoveItem = onRemoveFromCart,
                 onFavoritesClick = onFavoritesClick,
                 onOrdersClick = onOrdersClick,
+                onOffersClick = onOffersClick,
                 onLogoClick = onLogoClick,
                 onCheckoutClick = onCheckoutClick
             )
@@ -190,6 +192,7 @@ private fun ProductTopBar(
     onRemoveItem: (Product) -> Unit,
     onFavoritesClick: () -> Unit,
     onOrdersClick: () -> Unit,
+    onOffersClick: () -> Unit,
     onLogoClick: () -> Unit,
     onCheckoutClick: () -> Unit
 ) {
@@ -220,7 +223,14 @@ private fun ProductTopBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            item { Text("Offers", fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface) }
+            item {
+                Text(
+                    text = "Offers",
+                    modifier = Modifier.clickable { onOffersClick() },
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
             item {
                 Text(
                     text = "Orders",
