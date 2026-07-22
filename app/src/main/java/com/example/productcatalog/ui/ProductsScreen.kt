@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -41,6 +42,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -77,10 +79,11 @@ import com.example.productcatalog.ui.theme.ProductCatalogTheme
 fun ProductsContent(
     uiState: ProductsUiState,
     onRemoveFromCart: (Product) -> Unit,
-    isLoggedIn: Boolean,
+    isLoggedIn: Boolean?,
     isDarkTheme: Boolean,
     onThemeToggle: () -> Unit,
     onSignInClick: () -> Unit,
+    onSignOutClick: () -> Unit,
     onVendorSelected: (Vendor) -> Unit,
     onAddToCart: (Product) -> Unit,
     onFavoriteClick: (Int) -> Unit,
@@ -105,6 +108,28 @@ fun ProductsContent(
         }
 
         var selectedProduct by remember { mutableStateOf<Product?>(null) }
+        var showSignOutDialog by remember { mutableStateOf(false) }
+
+        if (showSignOutDialog) {
+            AlertDialog(
+                onDismissRequest = { showSignOutDialog = false },
+                title = { Text(text = "Sign Out") },
+                text = { Text(text = "Are you sure want to Signout") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showSignOutDialog = false
+                        onSignOutClick()
+                    }) {
+                        Text("Signout")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showSignOutDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
 
         Column {
             ProductTopBar(
@@ -116,6 +141,7 @@ fun ProductsContent(
                 isDarkTheme = isDarkTheme,
                 onThemeToggle = onThemeToggle,
                 onSignInClick = onSignInClick,
+                onSignOutClick = { showSignOutDialog = true },
                 onRemoveItem = onRemoveFromCart,
                 onFavoritesClick = onFavoritesClick,
                 onOrdersClick = onOrdersClick,
@@ -155,7 +181,7 @@ fun ProductsContent(
                     ProductItem(
                         product = product,
                         isFavorite = product.id in uiState.favoriteProductIds,
-                        isLoggedIn = isLoggedIn,
+                        isLoggedIn = isLoggedIn ?: false,
                         onSignInClick = onSignInClick,
                         onAddToCart = { onAddToCart(product) },
                         onFavoriteClick = { onFavoriteClick(product.id) },
@@ -169,7 +195,7 @@ fun ProductsContent(
             ProductDetailPopup(
                 product = product,
                 isFavorite = product.id in uiState.favoriteProductIds,
-                isLoggedIn = isLoggedIn,
+                isLoggedIn = isLoggedIn ?: false,
                 onSignInClick = onSignInClick,
                 onAddToCart = onAddToCart,
                 onFavoriteClick = { onFavoriteClick(product.id) },
@@ -185,10 +211,11 @@ private fun ProductTopBar(
     favoriteCount: Int = 0,
     cartItems: List<Product>,
     totalAmount: Double,
-    isLoggedIn: Boolean,
+    isLoggedIn: Boolean?,
     isDarkTheme: Boolean,
     onThemeToggle: () -> Unit,
     onSignInClick: () -> Unit,
+    onSignOutClick: () -> Unit,
     onRemoveItem: (Product) -> Unit,
     onFavoritesClick: () -> Unit,
     onOrdersClick: () -> Unit,
@@ -239,11 +266,13 @@ private fun ProductTopBar(
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
-            if (!isLoggedIn) {
+            if (isLoggedIn != null) {
                 item {
                     Text(
-                        text = "Sign In",
-                        modifier = Modifier.clickable { onSignInClick() },
+                        text = if (isLoggedIn) "Sign Out" else "Sign In",
+                        modifier = Modifier.clickable {
+                            if (isLoggedIn) onSignOutClick() else onSignInClick()
+                        },
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary

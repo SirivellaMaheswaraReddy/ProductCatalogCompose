@@ -85,4 +85,12 @@ class UserPreferences(context: Context) {
             preferences[ORDERED_PRODUCT_IDS] = newIds
         }
     }
+
+    suspend fun clearUserData() {
+        dataStore.edit { preferences ->
+            preferences.remove(IS_LOGGED_IN)
+            preferences.remove(FAVORITE_PRODUCT_IDS)
+            preferences.remove(ORDERED_PRODUCT_IDS)
+        }
+    }
 }

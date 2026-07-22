@@ -67,7 +67,7 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun AppNavigation(
-        isLoggedIn: Boolean,
+        isLoggedIn: Boolean?,
         isDarkTheme: Boolean,
         loginViewModel: LoginViewModel,
         productsViewModel: ProductsViewModel
@@ -90,6 +90,11 @@ class MainActivity : ComponentActivity() {
                         productsViewModel.setDarkMode(!isDarkTheme)
                     },
                     onSignInClick = { navController.navigate("signin") },
+                    onSignOutClick = {
+                        loginViewModel.signOut {
+                            productsViewModel.clearAllData()
+                        }
+                    },
                     onCheckoutClick = { navController.navigate("checkout") },
                     onVendorSelected = { vendor -> productsViewModel.selectVendor(vendor) },
                     onAddToCart = { product -> productsViewModel.addToCart(product) },

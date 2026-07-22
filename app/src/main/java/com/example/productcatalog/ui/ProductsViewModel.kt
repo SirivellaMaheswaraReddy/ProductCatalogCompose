@@ -83,6 +83,17 @@ class ProductsViewModel(private val userPreferences: UserPreferences) : ViewMode
         }
     }
 
+    fun clearAllData() {
+        _uiState.update { currentState ->
+            currentState.copy(
+                cartProducts = emptyList(),
+                cartCount = 0,
+                favoriteProductIds = emptySet(),
+                orderedProductIds = emptySet()
+            )
+        }
+    }
+
     fun toggleFavorite(productId: Int) {
         viewModelScope.launch {
             userPreferences.toggleFavorite(productId)

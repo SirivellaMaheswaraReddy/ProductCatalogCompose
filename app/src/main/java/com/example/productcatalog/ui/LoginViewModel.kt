@@ -19,14 +19,15 @@ class LoginViewModel(private val userPreferences: UserPreferences) : ViewModel()
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
-    private val _isLoggedIn = MutableStateFlow(false)
-    val isLoggedIn = _isLoggedIn.asStateFlow()
+    
+    val isLoggedIn: StateFlow<Boolean?> = userPreferences.isLoggedIn
+        .map { it }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     init {
         // Observe DataStore and update UI State automatically
         viewModelScope.launch {
             userPreferences.isLoggedIn.collect { status ->
-                _isLoggedIn.value = status
                 _uiState.update {
                     Log.e("M333", "status : $status")
                     it.copy(isLoggedIn = status)
@@ -62,6 +63,13 @@ class LoginViewModel(private val userPreferences: UserPreferences) : ViewModel()
             } catch (e: Exception) {
                 _uiState.update { it.copy(errorMessage = "Login Failed", isLoading = false) }
             }
+        }
+    }
+
+    fun signOut(onSignOut: () -> Unit = {}) {
+        viewModelScope.launch {
+            userPreferences.clearUserData()
+            onSignOut()
         }
     }
 }
