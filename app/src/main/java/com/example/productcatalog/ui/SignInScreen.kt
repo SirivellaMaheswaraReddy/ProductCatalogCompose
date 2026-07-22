@@ -2,6 +2,8 @@ package com.example.productcatalog.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -39,9 +41,26 @@ fun SignInScreen(
     // Observe the UI State from the ViewModel (MVVM Pattern)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    LaunchedEffect(Unit) {
+        viewModel.resetState()
+    }
+
     // Local UI state for toggling password visibility (doesn't belong in ViewModel)
     var passwordVisible by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
+
+    val suggestions = listOf(
+        "testadmin@mailinator.com" to "123456",
+        "browserstack@mailinator.com" to "123456",
+        "demoapp@gamail.com" to "demoapp@123"
+    )
+    var expanded by remember { mutableStateOf(false) }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    LaunchedEffect(isPressed) {
+        if (isPressed) expanded = true
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -79,23 +98,44 @@ fun SignInScreen(
             )
 
             // Email Field
-            OutlinedTextField(
-                value = uiState.email,
-                onValueChange = { viewModel.onEmailChanged(it) },
-                label = { Text("Gmail/Email") },
-                modifier = Modifier.fillMaxWidth(),
-                // Show error state if ViewModel has an error message
-                isError = uiState.errorMessage != null,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Next
-                ),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+            Box(modifier = Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                    value = uiState.email,
+                    onValueChange = { viewModel.onEmailChanged(it) },
+                    label = { Text("Gmail/Email") },
+                    modifier = Modifier.fillMaxWidth(),
+                    interactionSource = interactionSource,
+                    // Show error state if ViewModel has an error message
+                    isError = uiState.errorMessage != null,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Next
+                    ),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
                 )
-            )
+
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.fillMaxWidth(0.8f) // Slightly smaller than field width
+                ) {
+                    suggestions.forEach { (email, password) ->
+                        DropdownMenuItem(
+                            text = { Text(email) },
+                            onClick = {
+                                viewModel.onEmailChanged(email)
+                                viewModel.onPasswordChanged(password)
+                                expanded = false
+                                focusManager.clearFocus()
+                            }
+                        )
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 

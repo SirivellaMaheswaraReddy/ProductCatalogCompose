@@ -44,6 +44,10 @@ class LoginViewModel(private val userPreferences: UserPreferences) : ViewModel()
         _uiState.update { it.copy(password = password, errorMessage = null) }
     }
 
+    fun resetState() {
+        _uiState.update { LoginUiState(isLoggedIn = it.isLoggedIn) }
+    }
+
     fun signIn(onSuccess: () -> Unit) {
         val email = _uiState.value.email
         val password = _uiState.value.password
