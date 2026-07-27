@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -33,17 +34,32 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Login
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.LocalOffer
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +69,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalView
@@ -74,7 +91,9 @@ import com.example.productcatalog.model.Vendor
 import com.example.productcatalog.ui.popup.CartBottomSheet
 import com.example.productcatalog.ui.popup.ProductDetailPopup
 import com.example.productcatalog.ui.theme.ProductCatalogTheme
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductsContent(
     uiState: ProductsUiState,
@@ -93,265 +112,279 @@ fun ProductsContent(
     onLogoClick: () -> Unit,
     onCheckoutClick: () -> Unit
 ) {
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.surface // Supports Dark/Light automatically
-    ) {
-        val configuration = LocalConfiguration.current
-        val columns = when (configuration.orientation) {
-            Configuration.ORIENTATION_LANDSCAPE -> 3
-            else -> 2
-        }
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+    var showSignOutDialog by remember { mutableStateOf(false) }
 
-        val totalAmount = uiState.cartProducts.sumOf {
-            it.price.toString().toDoubleOrNull() ?: 0.0
-        }
-
-        var selectedProduct by remember { mutableStateOf<Product?>(null) }
-        var showSignOutDialog by remember { mutableStateOf(false) }
-
-        if (showSignOutDialog) {
-            AlertDialog(
-                onDismissRequest = { showSignOutDialog = false },
-                title = { Text(text = "Sign Out") },
-                text = { Text(text = "Are you sure want to Signout") },
-                confirmButton = {
-                    TextButton(onClick = {
-                        showSignOutDialog = false
-                        onSignOutClick()
-                    }) {
-                        Text("Signout")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showSignOutDialog = false }) {
-                        Text("Cancel")
-                    }
+    if (showSignOutDialog) {
+        AlertDialog(
+            onDismissRequest = { showSignOutDialog = false },
+            title = { Text(text = "Sign Out") },
+            text = { Text(text = "Are you sure want to Signout") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showSignOutDialog = false
+                    onSignOutClick()
+                }) {
+                    Text("Signout")
                 }
-            )
-        }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSignOutDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
-        Column {
-            ProductTopBar(
-                cartCount = uiState.cartCount,
-                favoriteCount = uiState.favoriteProductIds.size,
-                cartItems = uiState.cartProducts,
-                totalAmount = totalAmount,
-                isLoggedIn = isLoggedIn,
-                isDarkTheme = isDarkTheme,
-                onThemeToggle = onThemeToggle,
-                onSignInClick = onSignInClick,
-                onSignOutClick = { showSignOutDialog = true },
-                onRemoveItem = onRemoveFromCart,
-                onFavoritesClick = onFavoritesClick,
-                onOrdersClick = onOrdersClick,
-                onOffersClick = onOffersClick,
-                onLogoClick = onLogoClick,
-                onCheckoutClick = onCheckoutClick
-            )
-
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(columns),
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
-            ) {
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    VendorSection(
-                        selectedVendor = uiState.selectedVendor,
-                        onVendorSelected = onVendorSelected
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet(modifier = Modifier.width(280.dp)) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .clickable { scope.launch { drawerState.close() } },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back"
                     )
-                }
-
-                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "${uiState.products.size} Product(s) found.",
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
-                        textAlign = TextAlign.Center,
-                        fontSize = 15.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = "Menu",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.LocalOffer, contentDescription = null) },
+                    label = { Text("Offers") },
+                    selected = false,
+                    onClick = {
+                        onOffersClick()
+                        scope.launch { drawerState.close() }
+                    }
+                )
+                NavigationDrawerItem(
+                    icon = { Icon(Icons.Default.History, contentDescription = null) },
+                    label = { Text("Orders") },
+                    selected = false,
+                    onClick = {
+                        onOrdersClick()
+                        scope.launch { drawerState.close() }
+                    }
+                )
+
+                if (isLoggedIn != null) {
+                    NavigationDrawerItem(
+                        icon = {
+                            Icon(
+                                imageVector = if (isLoggedIn) Icons.AutoMirrored.Filled.Logout else Icons.AutoMirrored.Filled.Login,
+                                contentDescription = null
+                            )
+                        },
+                        label = { Text(if (isLoggedIn) "Sign Out" else "Sign In") },
+                        selected = false,
+                        onClick = {
+                            if (isLoggedIn) {
+                                showSignOutDialog = true
+                            } else {
+                                onSignInClick()
+                            }
+                            scope.launch { drawerState.close() }
+                        }
                     )
                 }
 
-                items(
-                    items = uiState.products,
-                    key = { it.id }
-                ) { product ->
-                    ProductItem(
+                Spacer(modifier = Modifier.weight(1f))
+
+                NavigationDrawerItem(
+                    icon = {
+                        Icon(
+                            imageVector = if (isDarkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
+                            contentDescription = null
+                        )
+                    },
+                    label = { Text(if (isDarkTheme) "Light Mode" else "Dark Mode") },
+                    selected = false,
+                    onClick = {
+                        onThemeToggle()
+                        scope.launch { drawerState.close() }
+                    }
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    ) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Image(
+                            painter = painterResource(id = R.drawable.browserstack_logo_icon_167776),
+                            contentDescription = "Logo",
+                            modifier = Modifier
+                                .height(48.dp)
+                                .clickable { onLogoClick() },
+                            contentScale = ContentScale.Fit
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                            Icon(Icons.Default.Menu, contentDescription = "Menu")
+                        }
+                    },
+                    actions = {
+                        val favoriteCount = uiState.favoriteProductIds.size
+                        Box(modifier = Modifier
+                            .padding(8.dp)
+                            .clickable { onFavoritesClick() }) {
+                            Icon(
+                                imageVector = Icons.Default.Favorite,
+                                contentDescription = "Favorites",
+                                modifier = Modifier.size(28.dp),
+                                tint = if (favoriteCount > 0) Color.Red else MaterialTheme.colorScheme.onSurface
+                            )
+                            if (favoriteCount > 0) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(16.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primary)
+                                        .align(Alignment.TopEnd),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = favoriteCount.toString(),
+                                        fontSize = 9.sp,
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+
+                        var showCartSheet by remember { mutableStateOf(false) }
+                        val cartCount = uiState.cartCount
+
+                        Box(modifier = Modifier
+                            .clickable { showCartSheet = true }
+                            .padding(8.dp)) {
+                            Icon(
+                                imageVector = Icons.Default.ShoppingCart,
+                                contentDescription = "Cart",
+                                modifier = Modifier.size(28.dp),
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                            if (cartCount > 0) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(16.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.error)
+                                        .align(Alignment.TopEnd),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = cartCount.toString(),
+                                        fontSize = 9.sp,
+                                        color = MaterialTheme.colorScheme.onError,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+
+                        if (showCartSheet) {
+                            val totalAmount = uiState.cartProducts.sumOf {
+                                it.price.toString().toDoubleOrNull() ?: 0.0
+                            }
+                            CartBottomSheet(
+                                cartItems = uiState.cartProducts,
+                                totalAmount = totalAmount,
+                                onRemoveItem = onRemoveFromCart,
+                                onCheckoutClick = onCheckoutClick,
+                                onDismiss = { showCartSheet = false }
+                            )
+                        }
+                    }
+                )
+            }
+        ) { padding ->
+            Surface(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                color = MaterialTheme.colorScheme.surface
+            ) {
+                val configuration = LocalConfiguration.current
+                val columns = when (configuration.orientation) {
+                    Configuration.ORIENTATION_LANDSCAPE -> 3
+                    else -> 2
+                }
+
+                var selectedProduct by remember { mutableStateOf<Product?>(null) }
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(columns),
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        VendorSection(
+                            selectedVendor = uiState.selectedVendor,
+                            onVendorSelected = onVendorSelected
+                        )
+                    }
+
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Text(
+                            text = "${uiState.products.size} Product(s) found.",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 5.dp),
+                            textAlign = TextAlign.Center,
+                            fontSize = 15.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    items(
+                        items = uiState.products,
+                        key = { it.id }
+                    ) { product ->
+                        ProductItem(
+                            product = product,
+                            isFavorite = product.id in uiState.favoriteProductIds,
+                            isLoggedIn = isLoggedIn ?: false,
+                            onSignInClick = onSignInClick,
+                            onAddToCart = { onAddToCart(product) },
+                            onFavoriteClick = { onFavoriteClick(product.id) },
+                            onClick = { selectedProduct = product }
+                        )
+                    }
+                }
+
+                selectedProduct?.let { product ->
+                    ProductDetailPopup(
                         product = product,
                         isFavorite = product.id in uiState.favoriteProductIds,
                         isLoggedIn = isLoggedIn ?: false,
                         onSignInClick = onSignInClick,
-                        onAddToCart = { onAddToCart(product) },
+                        onAddToCart = onAddToCart,
                         onFavoriteClick = { onFavoriteClick(product.id) },
-                        onClick = { selectedProduct = product }
+                        onDismiss = { selectedProduct = null }
                     )
                 }
             }
-        }
-
-        selectedProduct?.let { product ->
-            ProductDetailPopup(
-                product = product,
-                isFavorite = product.id in uiState.favoriteProductIds,
-                isLoggedIn = isLoggedIn ?: false,
-                onSignInClick = onSignInClick,
-                onAddToCart = onAddToCart,
-                onFavoriteClick = { onFavoriteClick(product.id) },
-                onDismiss = { selectedProduct = null }
-            )
-        }
-    }
-}
-
-@Composable
-private fun ProductTopBar(
-    cartCount: Int,
-    favoriteCount: Int = 0,
-    cartItems: List<Product>,
-    totalAmount: Double,
-    isLoggedIn: Boolean?,
-    isDarkTheme: Boolean,
-    onThemeToggle: () -> Unit,
-    onSignInClick: () -> Unit,
-    onSignOutClick: () -> Unit,
-    onRemoveItem: (Product) -> Unit,
-    onFavoritesClick: () -> Unit,
-    onOrdersClick: () -> Unit,
-    onOffersClick: () -> Unit,
-    onLogoClick: () -> Unit,
-    onCheckoutClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(80.dp)
-            .padding(horizontal = 14.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .height(40.dp)
-                .clickable { onLogoClick() }
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_browser_stack_logo),
-                contentDescription = "Logo",
-                modifier = Modifier.fillMaxHeight(),
-                contentScale = ContentScale.Fit
-            )
-        }
-
-        Spacer(modifier = Modifier.width(10.dp))
-
-        LazyRow(
-            modifier = Modifier.weight(1f),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            item {
-                Text(
-                    text = "Offers",
-                    modifier = Modifier.clickable { onOffersClick() },
-                    fontSize = 18.sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-            item {
-                Text(
-                    text = "Orders",
-                    modifier = Modifier.clickable { onOrdersClick() },
-                    fontSize = 18.sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-            if (isLoggedIn != null) {
-                item {
-                    Text(
-                        text = if (isLoggedIn) "Sign Out" else "Sign In",
-                        modifier = Modifier.clickable {
-                            if (isLoggedIn) onSignOutClick() else onSignInClick()
-                        },
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-        }
-
-        IconButton(onClick = onThemeToggle) {
-            Icon(
-                imageVector = if (isDarkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
-                contentDescription = "Toggle Theme",
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-        }
-
-        Box(modifier = Modifier.padding(8.dp).clickable { onFavoritesClick() }) {
-            Icon(
-                imageVector = Icons.Default.Favorite,
-                contentDescription = "Favorites",
-                modifier = Modifier.size(30.dp),
-                tint = if (favoriteCount > 0) Color.Red else MaterialTheme.colorScheme.onSurface
-            )
-            if (favoriteCount > 0) {
-                Box(
-                    modifier = Modifier
-                        .size(16.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary)
-                        .align(Alignment.TopEnd),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = favoriteCount.toString(),
-                        fontSize = 9.sp,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.width(8.dp))
-        var showCartSheet by remember { mutableStateOf(false) }
-
-        Box(modifier = Modifier.clickable { showCartSheet = true }.padding(8.dp)) {
-            Icon(
-                imageVector = Icons.Default.ShoppingCart,
-                contentDescription = "Cart",
-                modifier = Modifier.size(32.dp),
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-            if (cartCount > 0) {
-                Box(
-                    modifier = Modifier
-                        .size(18.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.error)
-                        .align(Alignment.TopEnd),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = cartCount.toString(),
-                        fontSize = 10.sp,
-                        color = MaterialTheme.colorScheme.onError,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        }
-
-        if (showCartSheet) {
-            CartBottomSheet(
-                cartItems = cartItems,
-                totalAmount = totalAmount,
-                onRemoveItem = onRemoveItem,
-                onCheckoutClick = onCheckoutClick,
-                onDismiss = { showCartSheet = false }
-            )
         }
     }
 }

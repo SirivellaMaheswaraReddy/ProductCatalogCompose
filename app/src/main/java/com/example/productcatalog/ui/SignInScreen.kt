@@ -2,8 +2,6 @@ package com.example.productcatalog.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -49,19 +47,6 @@ fun SignInScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
 
-    val suggestions = listOf(
-        "testadmin@mailinator.com" to "123456",
-        "browserstack@mailinator.com" to "123456",
-        "demoapp@gamail.com" to "demoapp@123"
-    )
-    var expanded by remember { mutableStateOf(false) }
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-
-    LaunchedEffect(isPressed) {
-        if (isPressed) expanded = true
-    }
-
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
@@ -97,45 +82,31 @@ fun SignInScreen(
                     .padding(bottom = 40.dp)
             )
 
-            // Email Field
-            Box(modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = uiState.email,
-                    onValueChange = { viewModel.onEmailChanged(it) },
-                    label = { Text("Gmail/Email") },
-                    modifier = Modifier.fillMaxWidth(),
-                    interactionSource = interactionSource,
-                    // Show error state if ViewModel has an error message
-                    isError = uiState.errorMessage != null,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Next
-                    ),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                    )
-                )
+            Text(
+                text = "Please login using below crendials as browserstack@mailinator.com/123456",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
 
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    modifier = Modifier.fillMaxWidth(0.8f) // Slightly smaller than field width
-                ) {
-                    suggestions.forEach { (email, password) ->
-                        DropdownMenuItem(
-                            text = { Text(email) },
-                            onClick = {
-                                viewModel.onEmailChanged(email)
-                                viewModel.onPasswordChanged(password)
-                                expanded = false
-                                focusManager.clearFocus()
-                            }
-                        )
-                    }
-                }
-            }
+            // Email Field
+            OutlinedTextField(
+                value = uiState.email,
+                onValueChange = { viewModel.onEmailChanged(it) },
+                label = { Text("Gmail/Email") },
+                modifier = Modifier.fillMaxWidth(),
+                // Show error state if ViewModel has an error message
+                isError = uiState.errorMessage != null,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next
+                ),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                )
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 

@@ -34,11 +34,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         userPreferences = UserPreferences(applicationContext)
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        val controller = WindowInsetsControllerCompat(window, window.decorView)
-        controller.hide(WindowInsetsCompat.Type.statusBars())
-        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-
         enableEdgeToEdge()
 
         setContent {
