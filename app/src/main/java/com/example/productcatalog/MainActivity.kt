@@ -88,6 +88,7 @@ class MainActivity : ComponentActivity() {
                     onSignOutClick = {
                         loginViewModel.signOut {
                             productsViewModel.clearAllData()
+                            productsViewModel.refresh()
                         }
                     },
                     onCheckoutClick = { navController.navigate("checkout") },
@@ -162,8 +163,10 @@ class MainActivity : ComponentActivity() {
             composable("signin") {
                 SignInScreen(
                     viewModel = loginViewModel,
+                    isDarkTheme = isDarkTheme,
                     onNavigateBack = { navController.popBackStack() },
                     onSignInSuccess = {
+                        productsViewModel.refresh()
                         navController.popBackStack()
                     }
                 )

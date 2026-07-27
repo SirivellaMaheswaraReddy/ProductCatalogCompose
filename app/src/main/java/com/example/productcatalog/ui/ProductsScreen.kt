@@ -44,6 +44,7 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -69,6 +70,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -226,14 +228,21 @@ fun ProductsContent(
             topBar = {
                 TopAppBar(
                     title = {
-                        Image(
-                            painter = painterResource(id = R.drawable.browserstack_logo_icon_167776),
-                            contentDescription = "Logo",
-                            modifier = Modifier
-                                .height(48.dp)
-                                .clickable { onLogoClick() },
-                            contentScale = ContentScale.Fit
-                        )
+                        Surface(
+                            color = Color.White,
+                            shape = RoundedCornerShape(4.dp),
+                            modifier = Modifier.padding(vertical = 1.dp)
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.browserstack_logo_icon_167776),
+                                contentDescription = "Logo",
+                                modifier = Modifier
+                                    .height(40.dp)
+                                    .padding(horizontal = 2.dp, vertical = 1.dp)
+                                    .clickable { onLogoClick() },
+                                contentScale = ContentScale.Fit
+                            )
+                        }
                     },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
@@ -383,6 +392,18 @@ fun ProductsContent(
                         onFavoriteClick = { onFavoriteClick(product.id) },
                         onDismiss = { selectedProduct = null }
                     )
+                }
+
+                if (uiState.isLoading) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.3f))
+                            .clickable(enabled = false) {},
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    }
                 }
             }
         }

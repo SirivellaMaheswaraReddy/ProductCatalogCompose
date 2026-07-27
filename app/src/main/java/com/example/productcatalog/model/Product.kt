@@ -30,5 +30,6 @@ data class ProductsUiState(
     val selectedVendor: Vendor? = null,
     val cartCount: Int = 0,
     val favoriteProductIds: Set<Int> = emptySet(),
-    val orderedProductIds: Set<Int> = emptySet()
+    val orderedProductIds: Set<Int> = emptySet(),
+    val isLoading: Boolean = false
 )

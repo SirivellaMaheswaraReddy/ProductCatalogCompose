@@ -3,6 +3,7 @@ package com.example.productcatalog.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -15,6 +16,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.password
@@ -34,7 +37,8 @@ import com.example.productcatalog.ui.login.LoginViewModel
 fun SignInScreen(
     onNavigateBack: () -> Unit,
     onSignInSuccess: () -> Unit,
-    viewModel: LoginViewModel
+    viewModel: LoginViewModel,
+    isDarkTheme: Boolean = false
 ) {
     // Observe the UI State from the ViewModel (MVVM Pattern)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -74,13 +78,19 @@ fun SignInScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_browser_stack_logo),
-                contentDescription = "Logo",
-                modifier = Modifier
-                    .height(150.dp)
-                    .padding(bottom = 40.dp)
-            )
+            Surface(
+                color = Color.White,
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.padding(bottom = 40.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_browser_stack_logo),
+                    contentDescription = "Logo",
+                    modifier = Modifier
+                        .height(120.dp)
+                        .padding(16.dp)
+                )
+            }
 
             Text(
                 text = "Please login using below crendials as browserstack@mailinator.com/123456",

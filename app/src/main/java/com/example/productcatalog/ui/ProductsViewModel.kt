@@ -7,6 +7,7 @@ import com.example.productcatalog.data.UserPreferences
 import com.example.productcatalog.model.Product
 import com.example.productcatalog.model.ProductsUiState
 import com.example.productcatalog.model.Vendor
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,6 +28,7 @@ class ProductsViewModel(private val userPreferences: UserPreferences) : ViewMode
     val darkMode = userPreferences.darkMode
 
     init {
+        refresh()
         viewModelScope.launch {
             userPreferences.favoriteProductIds.collect { ids ->
                 _uiState.update { it.copy(favoriteProductIds = ids) }
@@ -114,6 +116,23 @@ class ProductsViewModel(private val userPreferences: UserPreferences) : ViewMode
     fun getOrderedProducts(): List<Product> {
         val orderedIds = _uiState.value.orderedProductIds
         return allProducts.filter { it.id in orderedIds }
+    }
+
+    // In ProductsViewModel.kt
+
+    fun refresh() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            delay(1200) // 1.2 seconds delay as requested
+
+            // Re-fetch products from repository and reset filters to ensure a true "refresh"
+            val refreshedProducts = ProductRepository.getProducts()
+            _uiState.update { it.copy(
+                isLoading = false,
+                products = refreshedProducts,
+                selectedVendor = null // Reset vendor selection on refresh
+            ) }
+        }
     }
 
     // This is a private extension function inside the class
