@@ -57,6 +57,18 @@ class LoginViewModel(private val userPreferences: UserPreferences) : ViewModel()
             return
         }
 
+//        val validCredentials = mapOf(
+//            "browserstack@mailinator.com" to "123456",
+//            "demouser" to "testingfun99",
+//            "testadmin@mailinator.com" to "123456",
+//            "demoapp@gamail.com" to "demoapp@123"
+//        )
+//
+//        if (validCredentials[email] != password) {
+//            _uiState.update { it.copy(errorMessage = "Invalid email or password") }
+//            return
+//        }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
