@@ -7,15 +7,19 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.productcatalog.data.UserPreferences
+import com.example.productcatalog.data.repository.ProductRepositoryImpl
+import com.example.productcatalog.data.repository.UserRepositoryImpl
+import com.example.productcatalog.domain.usecase.GetProductsUseCase
+import com.example.productcatalog.domain.usecase.PlaceOrderUseCase
+import com.example.productcatalog.domain.usecase.SignInUseCase
+import com.example.productcatalog.domain.usecase.SignOutUseCase
+import com.example.productcatalog.domain.usecase.ToggleFavoriteUseCase
 import com.example.productcatalog.ui.CheckoutScreen
 import com.example.productcatalog.ui.FavoritesScreen
 import com.example.productcatalog.ui.OffersScreen
@@ -37,15 +41,29 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
+            val userRepository = UserRepositoryImpl(userPreferences)
+            val productRepository = ProductRepositoryImpl(userPreferences)
+            
             val productsViewModel: ProductsViewModel = viewModel(
-                factory = ProductsViewModelFactory(userPreferences)
+                factory = ProductsViewModelFactory(
+                    GetProductsUseCase(productRepository),
+                    ToggleFavoriteUseCase(productRepository),
+                    PlaceOrderUseCase(productRepository),
+                    productRepository,
+                    userRepository
+                )
             )
+            
             val darkModePref by productsViewModel.darkMode.collectAsStateWithLifecycle(initialValue = null)
             val useDarkTheme = darkModePref ?: isSystemInDarkTheme()
 
             ProductCatalogTheme(darkTheme = useDarkTheme) {
                 val loginViewModel: LoginViewModel = viewModel(
-                    factory = LoginViewModelFactory(userPreferences)
+                    factory = LoginViewModelFactory(
+                        userRepository,
+                        SignInUseCase(userRepository),
+                        SignOutUseCase(userRepository)
+                    )
                 )
 
                 val isLoggedIn by loginViewModel.isLoggedIn.collectAsStateWithLifecycle()
@@ -79,7 +97,6 @@ class MainActivity : ComponentActivity() {
             startDestination = "products"
         ) {
             composable("products") {
-                // FIXED: Call ProductsContent with its required parameters, not the ViewModel itself
                 ProductsContent(
                     uiState = productUiState,
                     isLoggedIn = isLoggedIn,
@@ -111,7 +128,11 @@ class MainActivity : ComponentActivity() {
             }
 
             composable("offers") {
-                OffersScreen(onBackClick = { navController.popBackStack() })
+                OffersScreen(onBackClick = { 
+                    if (navController.previousBackStackEntry != null) {
+                        navController.popBackStack()
+                    }
+                })
             }
 
             composable("favorites") {
@@ -121,7 +142,11 @@ class MainActivity : ComponentActivity() {
                 FavoritesScreen(
                     favoriteProducts = favoriteProducts,
                     onRemoveFavorite = { productId -> productsViewModel.toggleFavorite(productId) },
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { 
+                        if (navController.previousBackStackEntry != null) {
+                            navController.popBackStack()
+                        }
+                    }
                 )
             }
 
@@ -132,20 +157,27 @@ class MainActivity : ComponentActivity() {
                 OrdersScreen(
                     orderedProducts = orderedProducts,
                     loggedInUser = loggedInUsername,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { 
+                        if (navController.previousBackStackEntry != null) {
+                            navController.popBackStack()
+                        }
+                    }
                 )
             }
 
             composable("checkout") {
-                // FIXED: Use toDoubleOrNull to prevent crashes
                 val totalAmount = productUiState.cartProducts.sumOf {
-                    it.price.toString().toDoubleOrNull() ?: 0.0
+                    it.price.toDouble()
                 }
 
                 CheckoutScreen(
                     cartItems = productUiState.cartProducts,
                     totalAmount = totalAmount,
-                    onBackClick = { navController.popBackStack() },
+                    onBackClick = { 
+                        if (navController.previousBackStackEntry != null) {
+                            navController.popBackStack()
+                        }
+                    },
                     onOrderSubmit = { userName ->
                         productsViewModel.clearCart()
                         navController.navigate("order_success/$userName") {
@@ -169,7 +201,11 @@ class MainActivity : ComponentActivity() {
                 SignInScreen(
                     viewModel = loginViewModel,
                     isDarkTheme = isDarkTheme,
-                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateBack = { 
+                        if (navController.previousBackStackEntry != null) {
+                            navController.popBackStack()
+                        }
+                    },
                     onSignInSuccess = {
                         productsViewModel.refresh()
                         navController.popBackStack()
@@ -180,21 +216,37 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-class LoginViewModelFactory(private val userPreferences: UserPreferences) : androidx.lifecycle.ViewModelProvider.Factory {
+class LoginViewModelFactory(
+    private val userRepository: com.example.productcatalog.domain.repository.UserRepository,
+    private val signInUseCase: SignInUseCase,
+    private val signOutUseCase: SignOutUseCase
+) : androidx.lifecycle.ViewModelProvider.Factory {
     override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return LoginViewModel(userPreferences) as T
+            return LoginViewModel(userRepository, signInUseCase, signOutUseCase) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
 
-class ProductsViewModelFactory(private val userPreferences: UserPreferences) : androidx.lifecycle.ViewModelProvider.Factory {
+class ProductsViewModelFactory(
+    private val getProductsUseCase: GetProductsUseCase,
+    private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
+    private val placeOrderUseCase: PlaceOrderUseCase,
+    private val productRepository: com.example.productcatalog.domain.repository.ProductRepository,
+    private val userRepository: com.example.productcatalog.domain.repository.UserRepository
+) : androidx.lifecycle.ViewModelProvider.Factory {
     override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ProductsViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return ProductsViewModel(userPreferences) as T
+            return ProductsViewModel(
+                getProductsUseCase,
+                toggleFavoriteUseCase,
+                placeOrderUseCase,
+                productRepository,
+                userRepository
+            ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

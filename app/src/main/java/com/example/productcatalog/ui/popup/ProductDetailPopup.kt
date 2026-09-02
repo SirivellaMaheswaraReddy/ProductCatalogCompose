@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.productcatalog.R
-import com.example.productcatalog.model.Product
+import com.example.productcatalog.domain.model.Product
 
 @Composable
 fun ProductDetailPopup(

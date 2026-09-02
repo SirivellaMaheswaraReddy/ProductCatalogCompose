@@ -3,7 +3,9 @@ package com.example.productcatalog.ui.login
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.productcatalog.data.UserPreferences
+import com.example.productcatalog.domain.repository.UserRepository
+import com.example.productcatalog.domain.usecase.SignInUseCase
+import com.example.productcatalog.domain.usecase.SignOutUseCase
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -15,26 +17,26 @@ data class LoginUiState(
     val isLoggedIn: Boolean = false
 )
 
-class LoginViewModel(private val userPreferences: UserPreferences) : ViewModel() {
+class LoginViewModel(
+    private val userRepository: UserRepository,
+    private val signInUseCase: SignInUseCase,
+    private val signOutUseCase: SignOutUseCase
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
     
-    val isLoggedIn: StateFlow<Boolean?> = userPreferences.isLoggedIn
+    val isLoggedIn: StateFlow<Boolean?> = userRepository.isLoggedIn
         .map { it }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    val loggedInUsername: StateFlow<String?> = userPreferences.loggedInUsername
+    val loggedInUsername: StateFlow<String?> = userRepository.loggedInUsername
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     init {
-        // Observe DataStore and update UI State automatically
         viewModelScope.launch {
-            userPreferences.isLoggedIn.collect { status ->
-                _uiState.update {
-                    Log.e("M333", "status : $status")
-                    it.copy(isLoggedIn = status)
-                }
+            userRepository.isLoggedIn.collect { status ->
+                _uiState.update { it.copy(isLoggedIn = status) }
             }
         }
     }
@@ -76,8 +78,7 @@ class LoginViewModel(private val userPreferences: UserPreferences) : ViewModel()
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                // Logic to save login status
-                userPreferences.saveLoginStatus(true, email)
+                signInUseCase(email)
                 _uiState.update { it.copy(isLoading = false) }
                 onSuccess()
             } catch (e: Exception) {
@@ -88,7 +89,7 @@ class LoginViewModel(private val userPreferences: UserPreferences) : ViewModel()
 
     fun signOut(onSignOut: () -> Unit = {}) {
         viewModelScope.launch {
-            userPreferences.clearUserData()
+            signOutUseCase()
             onSignOut()
         }
     }

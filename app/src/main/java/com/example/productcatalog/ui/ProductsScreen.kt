@@ -87,9 +87,9 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.productcatalog.R
-import com.example.productcatalog.model.Product
+import com.example.productcatalog.domain.model.Product
+import com.example.productcatalog.domain.model.Vendor
 import com.example.productcatalog.model.ProductsUiState
-import com.example.productcatalog.model.Vendor
 import com.example.productcatalog.ui.popup.CartBottomSheet
 import com.example.productcatalog.ui.popup.ProductDetailPopup
 import com.example.productcatalog.ui.theme.ProductCatalogTheme

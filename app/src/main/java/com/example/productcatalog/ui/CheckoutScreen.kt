@@ -41,10 +41,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import com.example.productcatalog.domain.model.Product
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckoutScreen(
-    cartItems: List<com.example.productcatalog.model.Product>,
+    cartItems: List<Product>,
     totalAmount: Double,
     onBackClick: () -> Unit,
     onOrderSubmit: (String) -> Unit

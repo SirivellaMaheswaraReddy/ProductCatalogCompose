@@ -1,6 +1,6 @@
 package com.example.productcatalog.data
 
-import com.example.productcatalog.model.Product
+import com.example.productcatalog.domain.model.Product
 
 object ProductRepository {
     fun getProducts(): List<Product> = listOf(
