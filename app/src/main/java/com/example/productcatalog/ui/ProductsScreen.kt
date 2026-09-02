@@ -101,6 +101,7 @@ fun ProductsContent(
     uiState: ProductsUiState,
     onRemoveFromCart: (Product) -> Unit,
     isLoggedIn: Boolean?,
+    loggedInUser: String? = null,
     isDarkTheme: Boolean,
     onThemeToggle: () -> Unit,
     onSignInClick: () -> Unit,
@@ -374,6 +375,7 @@ fun ProductsContent(
                             product = product,
                             isFavorite = product.id in uiState.favoriteProductIds,
                             isLoggedIn = isLoggedIn ?: false,
+                            loggedInUser = loggedInUser,
                             onSignInClick = onSignInClick,
                             onAddToCart = { onAddToCart(product) },
                             onFavoriteClick = { onFavoriteClick(product.id) },
@@ -387,6 +389,7 @@ fun ProductsContent(
                         product = product,
                         isFavorite = product.id in uiState.favoriteProductIds,
                         isLoggedIn = isLoggedIn ?: false,
+                        loggedInUser = loggedInUser,
                         onSignInClick = onSignInClick,
                         onAddToCart = onAddToCart,
                         onFavoriteClick = { onFavoriteClick(product.id) },
@@ -450,6 +453,7 @@ private fun ProductItem(
     product: Product,
     isFavorite: Boolean,
     isLoggedIn: Boolean,
+    loggedInUser: String? = null,
     onSignInClick: () -> Unit,
     onAddToCart: (Product) -> Unit,
     onFavoriteClick: () -> Unit,
@@ -466,14 +470,29 @@ private fun ProductItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.clickable { onClick() }
     ) {
-        Box(modifier = Modifier.height(200.dp)) {
-            Image(
-                painter = painterResource(id = productImage),
-                contentDescription = null,
-                alignment = Alignment.Center,
-                modifier = Modifier.width(180.dp).fillMaxHeight(),
-                contentScale = ContentScale.Fit
-            )
+        Box(
+            modifier = Modifier.height(200.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            if (loggedInUser == "image_not_loader_user") {
+                Text(
+                    text = product.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(16.dp),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = productImage),
+                    contentDescription = null,
+                    alignment = Alignment.Center,
+                    modifier = Modifier
+                        .width(180.dp)
+                        .fillMaxHeight(),
+                    contentScale = ContentScale.Fit
+                )
+            }
         }
 
         Text(

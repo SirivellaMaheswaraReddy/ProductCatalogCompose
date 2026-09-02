@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -29,6 +30,7 @@ fun ProductDetailPopup(
     product: Product,
     isFavorite: Boolean,
     isLoggedIn: Boolean,
+    loggedInUser: String? = null,
     onSignInClick: () -> Unit,
     onAddToCart: (Product) -> Unit,
     onFavoriteClick: () -> Unit,
@@ -64,14 +66,29 @@ fun ProductDetailPopup(
                     }
                 }
 
-                Image(
-                    painter = painterResource(id = productImage),
-                    contentDescription = null,
+                Box(
                     modifier = Modifier
                         .height(200.dp)
                         .fillMaxWidth(),
-                    contentScale = ContentScale.Fit
-                )
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (loggedInUser == "image_not_loader_user") {
+                        Text(
+                            text = product.title,
+                            style = MaterialTheme.typography.headlineMedium,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(16.dp),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = productImage),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 

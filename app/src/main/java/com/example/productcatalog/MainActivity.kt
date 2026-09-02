@@ -49,9 +49,11 @@ class MainActivity : ComponentActivity() {
                 )
 
                 val isLoggedIn by loginViewModel.isLoggedIn.collectAsStateWithLifecycle()
+                val loggedInUsername by loginViewModel.loggedInUsername.collectAsStateWithLifecycle()
 
                 AppNavigation(
                     isLoggedIn = isLoggedIn,
+                    loggedInUsername = loggedInUsername,
                     isDarkTheme = useDarkTheme,
                     loginViewModel = loginViewModel,
                     productsViewModel = productsViewModel
@@ -63,6 +65,7 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun AppNavigation(
         isLoggedIn: Boolean?,
+        loggedInUsername: String?,
         isDarkTheme: Boolean,
         loginViewModel: LoginViewModel,
         productsViewModel: ProductsViewModel
@@ -80,6 +83,7 @@ class MainActivity : ComponentActivity() {
                 ProductsContent(
                     uiState = productUiState,
                     isLoggedIn = isLoggedIn,
+                    loggedInUser = loggedInUsername,
                     isDarkTheme = isDarkTheme,
                     onThemeToggle = {
                         productsViewModel.setDarkMode(!isDarkTheme)
@@ -127,6 +131,7 @@ class MainActivity : ComponentActivity() {
                 }
                 OrdersScreen(
                     orderedProducts = orderedProducts,
+                    loggedInUser = loggedInUsername,
                     onBackClick = { navController.popBackStack() }
                 )
             }

@@ -21,6 +21,7 @@ class UserPreferences(context: Context) {
         val FAVORITE_PRODUCT_IDS = stringSetPreferencesKey("favorite_product_ids")
         val ORDERED_PRODUCT_IDS = stringSetPreferencesKey("ordered_product_ids")
         val DARK_MODE = booleanPreferencesKey("dark_mode")
+        val LOGGED_IN_USERNAME = androidx.datastore.preferences.core.stringPreferencesKey("logged_in_username")
     }
 
     val isLoggedIn: Flow<Boolean> = dataStore.data
@@ -51,8 +52,21 @@ class UserPreferences(context: Context) {
             preferences[ORDERED_PRODUCT_IDS]?.mapNotNull { it.toIntOrNull() }?.toSet() ?: emptySet()
         }
 
-    suspend fun saveLoginStatus(status: Boolean) {
-        dataStore.edit { it[IS_LOGGED_IN] = status }
+    val loggedInUsername: Flow<String?> = dataStore.data
+        .catch { exception ->
+            if (exception is IOException) emit(emptyPreferences()) else throw exception
+        }
+        .map { it[LOGGED_IN_USERNAME] }
+
+    suspend fun saveLoginStatus(status: Boolean, username: String? = null) {
+        dataStore.edit { preferences ->
+            preferences[IS_LOGGED_IN] = status
+            if (username != null) {
+                preferences[LOGGED_IN_USERNAME] = username
+            } else if (!status) {
+                preferences.remove(LOGGED_IN_USERNAME)
+            }
+        }
     }
 
     suspend fun setDarkMode(enabled: Boolean?) {
@@ -91,6 +105,7 @@ class UserPreferences(context: Context) {
             preferences.remove(IS_LOGGED_IN)
             preferences.remove(FAVORITE_PRODUCT_IDS)
             preferences.remove(ORDERED_PRODUCT_IDS)
+            preferences.remove(LOGGED_IN_USERNAME)
         }
     }
 }

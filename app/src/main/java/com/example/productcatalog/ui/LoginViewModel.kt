@@ -24,6 +24,9 @@ class LoginViewModel(private val userPreferences: UserPreferences) : ViewModel()
         .map { it }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    val loggedInUsername: StateFlow<String?> = userPreferences.loggedInUsername
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     init {
         // Observe DataStore and update UI State automatically
         viewModelScope.launch {
@@ -57,23 +60,24 @@ class LoginViewModel(private val userPreferences: UserPreferences) : ViewModel()
             return
         }
 
-//        val validCredentials = mapOf(
-//            "browserstack@mailinator.com" to "123456",
-//            "demouser" to "testingfun99",
-//            "testadmin@mailinator.com" to "123456",
-//            "demoapp@gamail.com" to "demoapp@123"
-//        )
-//
-//        if (validCredentials[email] != password) {
-//            _uiState.update { it.copy(errorMessage = "Invalid email or password") }
-//            return
-//        }
+        val validCredentials = mapOf(
+            "image_not_loader_user" to "testingfun99",
+            "demouser" to "testingfun99",
+            "locked_user" to "testingfun99",
+            "fav_user" to "testingfun99",
+            "existing_order_user" to "testingfun99"
+        )
+
+        if (validCredentials[email] != password) {
+            _uiState.update { it.copy(errorMessage = "Invalid email or password") }
+            return
+        }
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
                 // Logic to save login status
-                userPreferences.saveLoginStatus(true)
+                userPreferences.saveLoginStatus(true, email)
                 _uiState.update { it.copy(isLoading = false) }
                 onSuccess()
             } catch (e: Exception) {

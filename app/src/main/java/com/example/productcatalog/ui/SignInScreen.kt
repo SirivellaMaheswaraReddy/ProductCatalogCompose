@@ -82,10 +82,11 @@ fun SignInScreen(
                 .fillMaxSize()
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF1C1B20),
-                            Color.Black
-                        )
+                        colors = if (isDarkTheme) {
+                            listOf(Color(0xFF1C1B20), Color.Black)
+                        } else {
+                            listOf(Color(0xFFF5F5F5), Color.White)
+                        }
                     )
                 )
         ) {
@@ -100,38 +101,74 @@ fun SignInScreen(
             ) {
                 Spacer(modifier = Modifier.height(20.dp))
                 Surface(
-                    color = Color.Transparent,
+                    color = Color.White,
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.padding(bottom = 40.dp)
                 ) {
                     Image(
-                        painter = painterResource(id = R.drawable.ic_login_image),
+                        painter = painterResource(id = R.drawable.ic_browser_stack_logo),
                         contentDescription = "Logo",
                         modifier = Modifier
                             .height(150.dp)
-                            .padding(4.dp)
+                            .padding(16.dp)
                     )
                 }
 
 
-                // Email Field
-                OutlinedTextField(
-                    value = uiState.email,
-                    onValueChange = { viewModel.onEmailChanged(it) },
-                    label = { Text("Gmail/Email") },
-                    modifier = Modifier.fillMaxWidth(),
-                    // Show error state if ViewModel has an error message
-                    isError = uiState.errorMessage != null,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Next
-                    ),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                    )
+                // UserName Dropdown Field
+                var expanded by remember { mutableStateOf(false) }
+                val validCredentials = listOf(
+                    "image_not_loader_user",
+                    "demouser",
+                    "locked_user",
+                    "fav_user",
+                    "existing_order_user"
                 )
+
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedTextField(
+                        value = uiState.email,
+                        onValueChange = { viewModel.onEmailChanged(it) },
+                        label = { Text("UserName") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                        // Show error state if ViewModel has an error message
+                        isError = uiState.errorMessage != null,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
+                        ),
+                        singleLine = true,
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        )
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        validCredentials.forEach { username ->
+                            DropdownMenuItem(
+                                text = { Text(text = username) },
+                                onClick = {
+                                    viewModel.onEmailChanged(username)
+                                    viewModel.onPasswordChanged("testingfun99")
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -199,34 +236,32 @@ fun SignInScreen(
                     }
                 }
 
-                Text(
-                    text = buildAnnotatedString {
-                        append("Please login using below credentials:\n")
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                            append("• browserstack@mailinator.com / 123456\n         OR          \n")
-                            append("• demouser / testingfun99\n")
-                        }
-                        /*append("• testadmin@mailinator.com / 123456\n")
-                    append("• demoapp@gamail.com / demoapp@123")*/
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontSize = 20.sp,
-                    color = Color.White,
-                    modifier = Modifier.padding(top = 24.dp, bottom = 20.dp)
-                )
-                Surface(
-                    color = Color.White,
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.padding(bottom = 40.dp)
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_android_logo),
-                        contentDescription = "Logo",
-                        modifier = Modifier
-                            .height(120.dp)
-                            .padding(4.dp)
-                    )
-                }
+//                Text(
+//                    text = buildAnnotatedString {
+//                        append("Please select or enter credentials:\n")
+//                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+//                            append("• demouser / testingfun99\n")
+//                            append("• image_not_loader_user / testingfun99\n")
+//                        }
+//                    },
+//                    style = MaterialTheme.typography.bodyMedium,
+//                    fontSize = 20.sp,
+//                    color = MaterialTheme.colorScheme.onSurface,
+//                    modifier = Modifier.padding(top = 24.dp, bottom = 20.dp)
+//                )
+//                Surface(
+//                    color = Color.White,
+//                    shape = RoundedCornerShape(8.dp),
+//                    modifier = Modifier.padding(bottom = 40.dp, top = 20.dp)
+//                ) {
+//                    Image(
+//                        painter = painterResource(id = R.drawable.ic_android_logo),
+//                        contentDescription = "Logo",
+//                        modifier = Modifier
+//                            .height(120.dp)
+//                            .padding(16.dp)
+//                    )
+//                }
             }
         }
 

@@ -26,8 +26,15 @@ import com.example.productcatalog.model.Product
 @Composable
 fun OrdersScreen(
     orderedProducts: List<Product>,
+    loggedInUser: String? = null,
     onBackClick: () -> Unit
 ) {
+    val finalOrders = if (loggedInUser == "existing_order_user") {
+        getExistingUserOrders() + orderedProducts
+    } else {
+        orderedProducts
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -40,7 +47,7 @@ fun OrdersScreen(
             )
         }
     ) { paddingValues ->
-        if (orderedProducts.isEmpty()) {
+        if (finalOrders.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -70,12 +77,38 @@ fun OrdersScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(orderedProducts) { product ->
+                items(finalOrders) { product ->
                     OrderItem(product = product)
                 }
             }
         }
     }
+}
+
+private fun getExistingUserOrders(): List<Product> {
+    return listOf(
+        Product(listOf("Apple"), "$", "USD", "iPhone 12", 5, 1, false, 10, "iPhone12-device-info.png", "iPhone 12"),
+        Product(listOf("Apple"), "$", "USD", "iPhone 12 Pro Max", 6, 1, false, 10, "iPhone12-device-info.png", "iPhone 12 Pro Max"),
+        Product(listOf("Apple"), "$", "USD", "iPhone 11", 7, 1, false, 10, "iPhone11-device-info.png", "iPhone 11"),
+        Product(listOf("Samsung"), "$", "USD", "Galaxy S20+", 8, 1, false, 10, "samsung-S20+-device-info.png", "Galaxy S20+"),
+        Product(listOf("Google"), "$", "USD", "Pixel 3", 9, 1, false, 10, "GooglePixel3-device-info.png", "Pixel 3"),
+        
+        Product(listOf("Google"), "$", "USD", "Pixel 3", 10, 1, false, 10, "GooglePixel3-device-info.png", "Pixel 3"),
+        Product(listOf("Samsung"), "$", "USD", "Galaxy S9", 11, 1, false, 10, "samsung-s9-device-info.png", "Galaxy S9"),
+        Product(listOf("OnePlus"), "$", "USD", "One Plus 8T", 12, 1, false, 10, "OnePlus8-device-info.png", "One Plus 8T"),
+        
+        Product(listOf("Samsung"), "$", "USD", "Galaxy S9", 13, 1, false, 10, "samsung-s9-device-info.png", "Galaxy S9"),
+        Product(listOf("OnePlus"), "$", "USD", "One Plus 8 Pro", 14, 1, false, 10, "OnePlus8-device-info.png", "One Plus 8 Pro"),
+        Product(listOf("Apple"), "$", "USD", "iPhone XS Max", 15, 1, false, 10, "infocard.png", "iPhone XS Max"),
+        
+        Product(listOf("Apple"), "$", "USD", "iPhone 12 Pro", 16, 1, false, 10, "iPhone12Pro-device-info.png", "iPhone 12 Pro"),
+        Product(listOf("Samsung"), "$", "USD", "Galaxy Note 20", 17, 1, false, 10, "Note20-device-info.png", "Galaxy Note 20"),
+        Product(listOf("Google"), "$", "USD", "Pixel 4", 18, 1, false, 10, "GooglePixel4-device-info.png", "Pixel 4"),
+        
+        Product(listOf("OnePlus"), "$", "USD", "One Plus 8", 19, 1, false, 10, "OnePlus8-device-info.png", "One Plus 8"),
+        Product(listOf("Samsung"), "$", "USD", "Galaxy Note 20 Ultra", 20, 1, false, 10, "Note20Ultra-device-info.png", "Galaxy Note 20 Ultra"),
+        Product(listOf("Apple"), "$", "USD", "iPhone 11 Pro", 21, 1, false, 10, "infocardiphone11Pro.png", "iPhone 11 Pro")
+    )
 }
 
 @Composable
